@@ -20,7 +20,7 @@ const LoryWork = () => {
         e.preventDefault();
         
         try {
-            const response = await fetch('http://localhost:3000/save-lory-work', {
+            const response = await fetch('fatema-naz-server-1knw7t7py.vercel.app/save-lory-work', {
                 method: 'POST',
                 headers: { 'content-type': 'application/json' },
                 body: JSON.stringify(formData)

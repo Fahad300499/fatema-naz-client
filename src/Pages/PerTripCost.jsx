@@ -66,7 +66,7 @@ const PerTripCost = () => {
     };
 
     try {
-        const response = await fetch('http://localhost:3000/save-trips', {
+        const response = await fetch('fatema-naz-server-1knw7t7py.vercel.app/save-trips', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

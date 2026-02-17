@@ -19,13 +19,13 @@ const TotalLory = () => {
         setSelectedLory(number);
         setLoading(true);
         try {
-            const res = await fetch(`http://localhost:3000/trips/${number}`);
+            const res = await fetch(`fatema-naz-server-1knw7t7py.vercel.app/trips/${number}`);
             const data = await res.json();
             setRecentTrips(data);
 
 
             // ২. কাজের (Work) হিস্টোরি আনা
-            const workRes = await fetch(`http://localhost:3000/lory-work/${number}`);
+            const workRes = await fetch(`fatema-naz-server-1knw7t7py.vercel.app/lory-work/${number}`);
             const workData = await workRes.json();
             setWorkHistory(workData);
 

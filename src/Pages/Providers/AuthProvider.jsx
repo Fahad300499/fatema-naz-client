@@ -6,9 +6,9 @@ import {
   signInWithPopup,
   signOut,
 } from 'firebase/auth'
-import { AuthContext } from './AuthContext'
-import { app } from '../../firebase/firebase.config'
 
+import { app } from '../../firebase/firebase.config'
+import { AuthContext } from "../Pages/providers/AuthContext";
 const auth = getAuth(app)
 const googleProvider = new GoogleAuthProvider()
 
