@@ -11,7 +11,8 @@ const TripHistory = () => {
 
     const fetchTrips = async () => {
         try {
-            let url = new URL("fatema-naz-server-1knw7t7py.vercel.app/trips");
+            // প্রোটোকলসহ সঠিক URL ব্যবহার করা হয়েছে
+            let url = new URL("http://localhost:3000/trips");
             if (searchDate) url.searchParams.append("date", searchDate);
             const res = await fetch(url);
             const data = await res.json();
@@ -36,39 +37,34 @@ const TripHistory = () => {
         return row.lorryNo?.toLowerCase().includes(searchLorry.toLowerCase());
     });
 
-    const totalDue = filteredRows.reduce((sum, row) => sum + (Number(row.payment2) || 0), 0);
+    // মোট গ্র্যান্ড টোটাল পাওনা (ড্রাইভারের ফাইনাল পাওনা অনুযায়ী)
+    const grandTotalDue = filteredRows.reduce((sum, row) => sum + (Number(row.driverTotalReceive) || 0), 0);
 
-    // --- নতুন PDF ডাউনলোড ফাংশন (টেবিল আইডি ব্যবহার করে) ---
     const downloadPDF = () => {
-    try {
-        const doc = new jsPDF('p', 'pt', 'a4');
-        
-        // টাইটেল
-        doc.setFontSize(20);
-        doc.text("Fatema Naz Petroleum", 40, 50);
+        try {
+            const doc = new jsPDF('l', 'pt', 'a4'); // ল্যান্ডস্কেপ মোড কারণ কলাম অনেক বেশি
+            doc.setFontSize(18);
+            doc.text("Fatema Naz Petroleum - Trip Report", 40, 40);
 
-        // অটো-টেবিল (প্লাগইনটি সরাসরি কল করা হচ্ছে)
-        autoTable(doc, { 
-            html: '#trip-table',
-            startY: 80,
-            theme: 'grid',
-            headStyles: { fillColor: [30, 41, 59] },
-            didParseCell: (data) => {
-                // বাংলা চিহ্ন থাকলে সেটা ইংলিশ করে দেওয়া (ইস্যু এড়াতে)
-                data.cell.text = String(data.cell.text).replace('৳', 'TK');
-            }
-        });
+            autoTable(doc, { 
+                html: '#trip-table',
+                startY: 60,
+                theme: 'grid',
+                styles: { fontSize: 8 },
+                headStyles: { fillColor: [30, 41, 59] },
+                didParseCell: (data) => {
+                    data.cell.text = String(data.cell.text).replace('৳', 'TK');
+                }
+            });
 
-        doc.save(`Trip_Report_${new Date().getTime()}.pdf`);
-    } catch (error) {
-        console.error("PDF Error:", error);
-        alert("PDF তৈরি করতে সমস্যা হচ্ছে। আপনার প্যাকেজটি ঠিকমতো ইন্সটল আছে কি না নিশ্চিত করুন।");
-    }
-};
-
-    const handlePrint = () => {
-        window.print();
+            doc.save(`Trip_Report_${new Date().getTime()}.pdf`);
+        } catch (error) {
+            console.error("PDF Error:", error);
+            alert("PDF তৈরি করতে সমস্যা হচ্ছে।");
+        }
     };
+
+    const handlePrint = () => { window.print(); };
 
     return (
         <div className="p-4 md:p-8 bg-[#f8fafc] min-h-screen font-sans">
@@ -77,7 +73,7 @@ const TripHistory = () => {
                     .no-print { display: none !important; }
                     body { background: white; }
                     .max-w-7xl { max-width: 100% !important; padding: 0 !important; }
-                    table { border: 1px solid #eee !important; }
+                    table { font-size: 10px !important; }
                 }
             `}} />
 
@@ -86,13 +82,13 @@ const TripHistory = () => {
                 <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 no-print">
                     <button onClick={() => navigate(-1)} className="btn btn-circle btn-outline btn-sm">❮</button>
                     <div className="text-center md:text-left">
-                        <h1 className="text-3xl font-extrabold text-slate-800">ট্রিপ রিপোর্ট</h1>
-                        <p className="text-slate-500 font-medium italic">Fatema Naz Petroleum</p>
+                        <h1 className="text-3xl font-extrabold text-slate-800">ট্রিপ রিপোর্ট (বিস্তারিত)</h1>
+                        <p className="text-slate-500 font-medium italic">ডিজেল ও পেমেন্ট হিস্টোরী</p>
                     </div>
                     <div className="stats shadow-sm bg-white border border-gray-100">
                         <div className="stat px-6 py-2">
-                            <div className="stat-title text-xs font-bold uppercase text-gray-400">মোট পাওনা</div>
-                            <div className="stat-value text-2xl text-blue-600">{totalDue.toLocaleString()} ৳</div>
+                            <div className="stat-title text-xs font-bold uppercase text-gray-400">সর্বমোট পাওনা</div>
+                            <div className="stat-value text-2xl text-green-600">{grandTotalDue.toLocaleString()} ৳</div>
                         </div>
                     </div>
                 </div>
@@ -105,39 +101,45 @@ const TripHistory = () => {
                             <input type="date" onChange={(e) => setSearchDate(e.target.value)} className="input input-bordered bg-slate-50" />
                         </div>
                         <div className="form-control">
-                            <label className="label text-xs font-bold text-slate-500 uppercase">গাড়ি নং</label>
-                            <input type="text" value={searchLorry} onChange={(e) => setSearchLorry(e.target.value)} className="input input-bordered bg-slate-50" placeholder="সার্চ করুন..." />
+                            <label className="label text-xs font-bold text-slate-500 uppercase">গাড়ি নং</label>
+                            <input type="text" value={searchLorry} onChange={(e) => setSearchLorry(e.target.value)} className="input input-bordered bg-slate-50" placeholder="গাড়ির নম্বর লিখুন..." />
                         </div>
-                        <button onClick={fetchTrips} className="btn btn-primary rounded-xl">সার্চ ডাটা আপডেট</button>
+                        <button onClick={fetchTrips} className="btn btn-primary rounded-xl">ডাটা লোড করুন</button>
                     </div>
                 </div>
 
-                {/* টেবিল সেকশন - এখানে আইডি যোগ করা হয়েছে */}
+                {/* টেবিল সেকশন */}
                 <div className="bg-white rounded-[2rem] shadow-xl overflow-hidden border border-slate-100">
                     <div className="overflow-x-auto">
-                        <table id="trip-table" className="table table-lg w-full">
+                        <table id="trip-table" className="table table-sm w-full text-center">
                             <thead>
                                 <tr className="bg-slate-800 text-white border-none">
                                     <th>তারিখ</th>
-                                    <th>গাড়ি নম্বর</th>
+                                    <th>গাড়ি নং</th>
                                     <th>ড্রাইভার</th>
-                                    <th>ডিপো</th>
-                                    <th>মোট টাকা</th>
-                                    <th>২য় পাওনা</th>
+                                    <th>মোট ভাড়া</th>
+                                    <th>২য় পাওনা</th>
+                                    <th className="bg-blue-900">ডিজেল বাকি (L)</th>
+                                    <th className="bg-blue-900">ডিজেল বাবদ (৳)</th>
+                                    <th className="bg-orange-700">ড্রাইভার মোট পাবে</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {filteredRows.length > 0 ? filteredRows.map((row, idx) => (
-                                    <tr key={idx} className="border-b border-slate-50">
-                                        <td className="font-bold text-slate-500 text-sm">{row.date}</td>
-                                        <td className="font-black font-mono">{row.lorryNo}</td>
-                                        <td className="font-semibold text-slate-700">{row.driverName}</td>
-                                        <td>{row.dipoName}</td>
-                                        <td className="font-bold">{row.totalAmount?.toLocaleString()} ৳</td>
-                                        <td className="font-black text-blue-700">{row.payment2?.toLocaleString()} ৳</td>
+                                    <tr key={idx} className="border-b border-slate-50 hover:bg-slate-50">
+                                        <td className="text-xs">{row.date}</td>
+                                        <td className="font-bold">{row.lorryNo}</td>
+                                        <td>{row.driverName}</td>
+                                        <td>{row.totalAmount?.toLocaleString()}</td>
+                                        <td className="font-semibold">{row.payment2?.toLocaleString()} ৳</td>
+                                        <td className="text-blue-600 font-bold">{row.dieselBaki} L</td>
+                                        <td className="text-blue-600 font-bold">{row.dieselBabodPabe?.toLocaleString()} ৳</td>
+                                        <td className="font-black text-primary bg-orange-50">
+                                            {row.driverTotalReceive?.toLocaleString()} ৳
+                                        </td>
                                     </tr>
                                 )) : (
-                                    <tr><td colSpan="6" className="text-center py-10 opacity-50">কোন ডাটা পাওয়া যায়নি</td></tr>
+                                    <tr><td colSpan="8" className="text-center py-10 opacity-50">কোন ডাটা পাওয়া যায়নি</td></tr>
                                 )}
                             </tbody>
                         </table>
@@ -146,14 +148,10 @@ const TripHistory = () => {
 
                 {/* বাটন সেকশন */}
                 <div className="mt-6 flex justify-between items-center px-4 no-print">
-                    <p className="text-sm text-slate-400 italic">* মোট {filteredRows.length} রেকর্ড</p>
+                    <p className="text-sm text-slate-400 italic">* মোট {filteredRows.length} টি এন্ট্রি পাওয়া গেছে</p>
                     <div className="flex gap-3">
-                        <button onClick={downloadPDF} className="btn btn-outline btn-secondary rounded-xl">
-                            PDF ডাউনলোড
-                        </button>
-                        <button onClick={handlePrint} className="btn btn-primary rounded-xl">
-                            প্রিন্ট রিপোর্ট
-                        </button>
+                        <button onClick={downloadPDF} className="btn btn-outline btn-secondary rounded-xl">PDF ডাউনলোড</button>
+                        <button onClick={handlePrint} className="btn btn-primary rounded-xl">প্রিন্ট রিপোর্ট</button>
                     </div>
                 </div>
             </div>

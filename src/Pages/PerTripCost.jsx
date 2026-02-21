@@ -11,89 +11,106 @@ const PerTripCost = () => {
 
     const { register, control, handleSubmit, watch } = useForm({
         defaultValues: {
-            date: "2026-01-05",
+            date: new Date().toISOString().split('T')[0],
             dipoName: "Meghna Parbatipur",
-            tripNo: "Jan-02",
+            tripNo: "",
             rows: fixedLorryNumbers.map((lorry) => ({
                 lorryNo: lorry,
                 driverName: "",
                 product: "MS",
+                totalAmount: 0,
                 payment1: 0,
                 fine: 0,
-                totalAmount: 0,
                 security: 0,
-                payment2: 0
+                dieselPabe: 0,    // ১. ডিজেল পাবে (Liter)
+                dieselKhoroch: 0, // ২. ডিজেল খরচ (Liter)
+                dieselRate: 0     // ৪. ডিজেল মূল্য (Rate)
             }))
         }
     });
 
     const { fields } = useFieldArray({ control, name: "rows" });
-    const watchRows = watch("rows"); // পুরো টেবিলের ডাটা ওয়াচ করা হচ্ছে গ্র্যান্ড টোটালের জন্য
+    const watchRows = watch("rows");
 
-    // একটি নির্দিষ্ট রো-এর জন্য ২য় পেমেন্ট বের করা
-    const calculateDuePayment = (index) => {
+    // ক্যালকুলেশন ফাংশন
+    const calculateRowData = (index) => {
         const row = watchRows[index];
         const total = Number(row?.totalAmount) || 0;
         const p1 = Number(row?.payment1) || 0;
         const sc = Number(row?.security) || 0;
         const fine = Number(row?.fine) || 0;
-        return total - (p1 + sc + fine);
+        
+        // ২য় পেমেন্ট (পাওনা)
+        const payment2 = total - (p1 + sc + fine);
+
+        // ডিজেল ক্যালকুলেশন
+        const dPabe = Number(row?.dieselPabe) || 0;
+        const dKhoroch = Number(row?.dieselKhoroch) || 0;
+        const dRate = Number(row?.dieselRate) || 0;
+
+        const dieselBaki = dPabe - dKhoroch; // ৩. ডিজেল বাকি থাকে
+        const dieselBabodPabe = dieselBaki * dRate; // ৫. ডিজেল বাবদ পাবে (টাকায়)
+        
+        // ড্রাইভার মোট পাবে = ২য় পেমেন্ট + ডিজেল বাবদ পাবে
+        const driverTotalReceive = payment2 + dieselBabodPabe;
+
+        return { payment2, dieselBaki, dieselBabodPabe, driverTotalReceive };
     };
 
-    // কলাম ভিত্তিক সর্বমোট (Grand Total) ক্যালকুলেশন
     const getColumnTotal = (columnName) => {
         return watchRows.reduce((acc, row) => acc + (Number(row[columnName]) || 0), 0);
     };
 
-    // ২য় পেমেন্টের সর্বমোট আলাদাভাবে বের করা
-    const getGrandDueTotal = () => {
-        return watchRows.reduce((acc, _, index) => acc + calculateDuePayment(index), 0);
-    };
-
     const onSubmit = async (data) => {
-    // ২য় পেমেন্টসহ ফাইনাল ডাটা ক্যালকুলেট করা
-    const finalRows = data.rows.map((row, index) => ({
-        ...row,
-        payment2: calculateDuePayment(index)
-    }));
+    const finalRows = data.rows.map((row, index) => {
+        const calcs = calculateRowData(index);
+        return {
+            ...row,
+            payment2: calcs.payment2,
+            dieselBaki: calcs.dieselBaki,
+            dieselBabodPabe: calcs.dieselBabodPabe,
+            driverTotalReceive: calcs.driverTotalReceive
+        };
+    });
 
     const finalSubmission = {
         ...data,
         rows: finalRows,
-        grandTotalAmount: getColumnTotal("totalAmount"),
-        grandDueTotal: getGrandDueTotal(),
         createdAt: new Date() 
     };
 
     try {
-        const response = await fetch('fatema-naz-server-1knw7t7py.vercel.app/save-trips', {
+        // এখানে https:// যোগ করা হয়েছে
+        const response = await fetch('http://localhost:3000/save-trips', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(finalSubmission),
         });
 
+        // রেসপন্স চেক করা
+        if (!response.ok) {
+            throw new Error(`সার্ভার এরর: ${response.status}`);
+        }
+
         const result = await response.json();
-        
         if (result.insertedId) {
-            alert("সফলভাবে ডাটাবেজে সেভ হয়েছে!");
+            alert("✅ সফলভাবে সেভ হয়েছে!");
         } else {
-            alert("সেভ করা সম্ভব হয়নি।");
+            alert("⚠️ ডাটা সেভ হয়নি, আবার চেষ্টা করুন।");
         }
     } catch (error) {
         console.error("Error posting data:", error);
-        alert("সার্ভার কানেক্ট করা যাচ্ছে না!");
+        alert("❌ সার্ভার কানেক্ট করা যাচ্ছে না! (ইন্টারনেট বা URL চেক করুন)");
     }
 };
 
     return (
-        <div className="p-4 md:p-8 bg-base-200 min-h-screen">
-            <form onSubmit={handleSubmit(onSubmit)} className="max-w-7xl mx-auto bg-white p-6 rounded-xl shadow-xl">
-                <h1 className='text-center font-bold text-3xl underline mb-10 text-primary'>Per Trip Costing Amount</h1>
+        <div className="p-2 md:p-4 bg-base-200 min-h-screen">
+            <form onSubmit={handleSubmit(onSubmit)} className="max-w-[100%] mx-auto bg-white p-4 rounded-xl shadow-xl">
+                <h1 className='text-center font-bold text-2xl underline mb-6 text-primary'>Per Trip Costing Amount & Diesel Details</h1>
 
                 {/* টপ ইনপুট */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <div className="form-control">
                         <label className="label font-bold">Date:</label>
                         <input type="date" {...register("date")} className="input input-bordered w-full" />
@@ -104,63 +121,61 @@ const PerTripCost = () => {
                     </div>
                     <div className="form-control">
                         <label className="label font-bold">Trip No:</label>
-                        <input type="text" {...register("tripNo")} className="input input-bordered w-full" />
+                        <input type="text" {...register("tripNo")} className="input input-bordered w-full" placeholder="Ex: Jan-02" />
                     </div>
                 </div>
 
                 <div className="overflow-x-auto">
-                    <table className="table table-compact w-full border text-center">
+                    <table className="table table-compact w-full border text-center text-xs">
                         <thead className="bg-gray-100">
                             <tr>
-                                <th>S.N</th>
-                                <th>গাড়ী নং</th>
-                                <th>ড্রাইভার</th>
-                                <th>প্রোডাক্ট</th>
-                                <th>Total (মোট ভাড়া)</th>
+                                <th>গাড়ী নং</th>
+                                <th>মোট ভাড়া</th>
                                 <th>১ম পেমেন্ট</th>
-                                <th>জরিমানা/Short</th>
-                                <th>জামানত (Cash)</th>
-                                <th className="bg-yellow-100 text-blue-700 font-bold border-l">২য় পেমেন্ট (পাওনা)</th>
+                                <th>জরিমানা</th>
+                                <th>জামানত</th>
+                                <th className="bg-yellow-100">২য় পেমেন্ট</th>
+                                <th className="bg-blue-50">ডিজেল পাবে (L)</th>
+                                <th className="bg-blue-50">ডিজেল খরচ (L)</th>
+                                <th className="bg-green-50">ডিজেল বাকি (L)</th>
+                                <th className="bg-blue-50">ডিজেল মূল্য (Rate)</th>
+                                <th className="bg-green-50">ডিজেল বাবদ পাবে (৳)</th>
+                                <th className="bg-orange-100 font-bold text-md">ড্রাইভার মোট পাবে</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {fields.map((field, index) => (
-                                <tr key={field.id} className="hover">
-                                    <td>{index + 1}</td>
-                                    <td>
-                                        <input type="text" readOnly {...register(`rows.${index}.lorryNo`)} className="w-20 font-bold text-red-600 bg-transparent outline-none" />
-                                    </td>
-                                    <td><input type="text" {...register(`rows.${index}.driverName`)} className="input input-bordered input-xs w-24" /></td>
-                                    <td><input type="text" {...register(`rows.${index}.product`)} className="input input-bordered input-xs w-16" /></td>
-                                    <td><input type="number" {...register(`rows.${index}.totalAmount`)} className="input input-bordered input-xs w-20 font-bold bg-green-50" /></td>
-                                    <td><input type="number" {...register(`rows.${index}.payment1`)} className="input input-bordered input-xs w-20" /></td>
-                                    <td><input type="number" {...register(`rows.${index}.fine`)} className="input input-bordered input-xs w-16 text-error" /></td>
-                                    <td><input type="number" {...register(`rows.${index}.security`)} className="input input-bordered input-xs w-20" /></td>
-                                    <td className="font-bold text-primary bg-yellow-50 border-l">
-                                        {calculateDuePayment(index)}
-                                    </td>
-                                </tr>
-                            ))}
+                            {fields.map((field, index) => {
+                                const { payment2, dieselBaki, dieselBabodPabe, driverTotalReceive } = calculateRowData(index);
+                                return (
+                                    <tr key={field.id} className="hover">
+                                        <td className="font-bold text-red-600">{watchRows[index].lorryNo}</td>
+                                        <td><input type="number" {...register(`rows.${index}.totalAmount`)} className="input input-bordered input-xs w-16" /></td>
+                                        <td><input type="number" {...register(`rows.${index}.payment1`)} className="input input-bordered input-xs w-16" /></td>
+                                        <td><input type="number" {...register(`rows.${index}.fine`)} className="input input-bordered input-xs w-12 text-error" /></td>
+                                        <td><input type="number" {...register(`rows.${index}.security`)} className="input input-bordered input-xs w-16" /></td>
+                                        <td className="font-bold text-blue-700 bg-yellow-50">{payment2}</td>
+                                        
+                                        {/* ডিজেল ইনপুটস */}
+                                        <td className="bg-blue-50"><input type="number" {...register(`rows.${index}.dieselPabe`)} className="input input-bordered input-xs w-14" /></td>
+                                        <td className="bg-blue-50"><input type="number" {...register(`rows.${index}.dieselKhoroch`)} className="input input-bordered input-xs w-14" /></td>
+                                        <td className="font-bold bg-green-50">{dieselBaki}</td>
+                                        <td className="bg-blue-50"><input type="number" {...register(`rows.${index}.dieselRate`)} className="input input-bordered input-xs w-14" /></td>
+                                        <td className="font-bold bg-green-50">{dieselBabodPabe}</td>
+                                        
+                                        {/* ড্রাইভার মোট পাবে */}
+                                        <td className="font-bold text-lg text-primary bg-orange-50">
+                                            {driverTotalReceive}
+                                        </td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
-                        {/* গ্র্যান্ড টোটাল ফুটার */}
-                        <tfoot className="bg-gray-800 text-white font-bold text-md">
-                            <tr>
-                                <td colSpan="4" className="text-right text-lg">Grand Total =</td>
-                                <td>{getColumnTotal("totalAmount")}</td>
-                                <td>{getColumnTotal("payment1")}</td>
-                                <td className="text-red-300">{getColumnTotal("fine")}</td>
-                                <td>{getColumnTotal("security")}</td>
-                                <td className="bg-yellow-400 text-black text-lg border-l">
-                                    {getGrandDueTotal()}
-                                </td>
-                            </tr>
-                        </tfoot>
                     </table>
                 </div>
 
                 <div className="mt-8 flex gap-4 justify-center">
                     <button type="submit" className="btn btn-primary px-12">Save Record</button>
-                    <Link to="/" className="btn btn-primary px-12">Go To Home</Link>
+                    <Link to="/" className="btn btn-outline px-12">Go To Home</Link>
                 </div>
             </form>
         </div>

@@ -8,7 +8,7 @@ import {
 } from 'firebase/auth'
 
 import { app } from '../../firebase/firebase.config'
-import { AuthContext } from "../Pages/providers/AuthContext";
+import { AuthContext } from './AuthContext';
 const auth = getAuth(app)
 const googleProvider = new GoogleAuthProvider()
 

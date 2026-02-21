@@ -9,9 +9,9 @@ import TotalLory from "../Pages/TotalLory";
 import Chalan from "../Pages/Chalan";
 import ChalanReport from "../Pages/ChalanReport";
 import LoryWork from "../Pages/LoryWork";
-import LoryWorkHistory from "../Pages/LoryWorkHistory";
 import PrivateRoute from "./PrivateRoute";
 import Login from "../Pages/Login/Login";
+import LoryWorkHistory from "../Pages/LoryWorkHistory";
 
 export const router = createBrowserRouter([
   {

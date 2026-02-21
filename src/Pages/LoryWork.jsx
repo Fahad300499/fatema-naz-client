@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Swal from 'sweetalert2'; // মেসেজ দেখানোর জন্য (npm install sweetalert2)
+import Swal from 'sweetalert2'; 
 
 const LoryWork = () => {
     const loryList = [
@@ -8,34 +8,75 @@ const LoryWork = () => {
         "41-0639", "44-0640", "44-0783"
     ];
 
+    // কাজের বিবরণের লিস্ট
+    const workOptions = [
+        "ইঞ্জিন ফাংশন টোটাল",
+        "চাকার ফাংশন",
+        "কেবিনের কাজ",
+        "ট্যাংকির কাজ",
+        "ওয়ারিং এর কাজ",
+        "পাম্প এর কাজ",
+        "মবিল সার্ভিসিং",
+        "এয়ার ফিল্টার"
+    ];
+
     const [formData, setFormData] = useState({
         lorryNo: '',
         date: new Date().toISOString().split('T')[0],
-        workDetails: '',
+        workDetails: '', // এটি এখন ড্রপডাউন থেকে আসবে
         cost: '',
         driverName: ''
     });
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        
-        try {
-            const response = await fetch('fatema-naz-server-1knw7t7py.vercel.app/save-lory-work', {
-                method: 'POST',
-                headers: { 'content-type': 'application/json' },
-                body: JSON.stringify(formData)
-            });
-            const data = await response.json();
+    e.preventDefault();
 
-            if (data.insertedId) {
-                Swal.fire("সফল!", "লরীর কাজের বিবরণ সেভ হয়েছে", "success");
-                setFormData({ ...formData, workDetails: '', cost: '', driverName: '' });
-            }
-        } catch (error) {
-            console.error("Error:", error);
-            Swal.fire("ভুল!", "সেভ করা সম্ভব হয়নি", "error");
-        }
+    const finalData = {
+        ...formData,
+        cost: parseFloat(formData.cost) || 0 
     };
+
+    try {
+        // আপনি যদি লোকালহোস্টে টেস্ট করেন তবে নিচের URL টি ব্যবহার করুন
+        const response = await fetch('http://localhost:3000/save-lory-work', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json' 
+            },
+            body: JSON.stringify(finalData)
+        });
+
+        const data = await response.json();
+
+        // MongoDB এর result এ সাধারণত acknowledged: true থাকে
+        if (data.insertedId || data.acknowledged) {
+            Swal.fire({
+                icon: 'success',
+                title: 'সফল!',
+                text: 'লরীর কাজের বিবরণ সেভ হয়েছে',
+                timer: 2000
+            });
+            
+            // ফর্ম রিসেট
+            setFormData({ 
+                lorryNo: '', // এটিও রিসেট করা ভালো
+                date: new Date().toISOString().split('T')[0],
+                workDetails: '', 
+                cost: '', 
+                driverName: '' 
+            });
+        } else {
+            throw new Error('ডাটা সেভ হয়নি');
+        }
+    } catch (error) {
+        console.error("Error Saving Data:", error);
+        Swal.fire({
+            icon: 'error',
+            title: 'ভুল!',
+            text: 'সার্ভারে কানেক্ট হতে পারছে না। URL বা ইন্টারনেট চেক করুন।',
+        });
+    }
+};
 
     return (
         <div className="max-w-2xl mx-auto p-8 bg-white shadow-xl rounded-2xl mt-10 border border-gray-100">
@@ -72,24 +113,28 @@ const LoryWork = () => {
                         <label className="label font-semibold">ড্রাইভারের নাম</label>
                         <input 
                             type="text" 
-                            placeholder="ড্রাইভারের নাম"
                             className="input input-bordered" 
+                            placeholder="ড্রাইভারের নাম"
                             value={formData.driverName}
                             onChange={(e) => setFormData({...formData, driverName: e.target.value})}
                         />
                     </div>
                 </div>
 
-                {/* কাজের বিবরণ */}
+                {/* কাজের বিবরণ (সিলেক্ট অপশন) */}
                 <div className="form-control">
-                    <label className="label font-semibold">কাজের বিবরণ (কি কি কাজ হয়েছে)</label>
-                    <textarea 
+                    <label className="label font-semibold">কাজের বিবরণ সিলেক্ট করুন</label>
+                    <select 
                         required
-                        placeholder="উদা: ইঞ্জিন অয়েল পরিবর্তন, টায়ার মেরামত ইত্যাদি"
-                        className="textarea textarea-bordered h-24"
+                        className="select select-bordered w-full focus:outline-blue-500"
                         value={formData.workDetails}
                         onChange={(e) => setFormData({...formData, workDetails: e.target.value})}
-                    ></textarea>
+                    >
+                        <option value="">কাজের ধরন বেছে নিন</option>
+                        {workOptions.map((work, index) => (
+                            <option key={index} value={work}>{work}</option>
+                        ))}
+                    </select>
                 </div>
 
                 {/* খরচ */}
