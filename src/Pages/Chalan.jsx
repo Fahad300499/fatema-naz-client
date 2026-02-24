@@ -30,7 +30,7 @@ const Chalan = () => {
     // ডাটাবেজে সেভ করার ফাংশন
     const saveToDB = async (updatedEntries) => {
         try {
-            await axios.post('fatema-naz-server-1knw7t7py.vercel.app/chalans', {
+            await axios.post('https://fatema-naz-server-lpu3-j6k8h4516.vercel.app/chalans', {
                 date: chalanDate,
                 companyName,
                 entries: updatedEntries

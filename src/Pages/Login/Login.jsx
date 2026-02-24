@@ -15,22 +15,44 @@ const Login = () => {
             const result = await signInWithGoogle();
             const loggedUser = result.user;
 
-            setUser(loggedUser);
+            const userData = {
+                name: loggedUser.displayName,
+                email: loggedUser.email,
+                photo: loggedUser.photoURL,
+                role: 'user' // ডিফল্ট রোল
+            };
 
-            Swal.fire({
-                title: 'সফল লগইন!',
-                text: `স্বাগতম, ${loggedUser.displayName}`,
-                icon: 'success',
-                timer: 2000,
-                showConfirmButton: false
+            // মেথড অবশ্যই PUT হতে হবে যেহেতু ব্যাকেন্ডে app.put ব্যবহার করেছেন
+            // Login.jsx ফাইলে পরিবর্তন করুন
+            const response = await fetch('https://fatema-naz-server-lpu3-j6k8h4516.vercel.app/users', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(userData)
             });
 
-            navigate(from, { replace: true });
+            const data = await response.json();
+
+            // MongoDB-তে Upsert হলে matchedCount অথবা upsertedCount পাওয়া যায়
+            if (data.upsertedCount > 0 || data.matchedCount >= 0) {
+                setUser(loggedUser);
+
+                Swal.fire({
+                    title: 'সফল লগইন!',
+                    text: `স্বাগতম, ${loggedUser.displayName}`,
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+
+                navigate(from, { replace: true });
+            }
 
         } catch (error) {
             console.error("Login Error:", error.message);
             setLoading(false);
-            Swal.fire('ভুল হয়েছে!', 'গুগল লগইন সম্পন্ন হয়নি', 'error');
+            Swal.fire('ভুল হয়েছে!', 'সার্ভারে কানেক্ট করা যাচ্ছে না', 'error');
         }
     };
 
@@ -71,7 +93,7 @@ const Login = () => {
 
                     <div className="divider my-10 text-gray-300 text-[10px] uppercase tracking-[0.3em] font-bold">অ্যাক্সেস গেটওয়ে</div>
 
-                 
+
                     {/* গুগল লগইন বাটন */}
                     <button
                         onClick={handleGoogleLogin}

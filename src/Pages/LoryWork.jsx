@@ -38,7 +38,7 @@ const LoryWork = () => {
 
     try {
         // আপনি যদি লোকালহোস্টে টেস্ট করেন তবে নিচের URL টি ব্যবহার করুন
-        const response = await fetch('http://localhost:3000/save-lory-work', {
+        const response = await fetch('https://fatema-naz-server-lpu3-j6k8h4516.vercel.app/save-lory-work', {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json' 

@@ -2,10 +2,22 @@ import React, { useContext } from 'react';
 import { useNavigate } from 'react-router';
 import Swal from 'sweetalert2';
 import { AuthContext } from '../../Pages/providers/AuthContext';
+import { useEffect, useState } from 'react'; // useEffect, useState যোগ করুন
 
 const FatemaNaz = () => {
     const navigate = useNavigate();
     const { user, logOut } = useContext(AuthContext);
+    const [dbUser, setDbUser] = useState(null); // ডাটাবেজের ইউজার ডাটা রাখার জন্য
+
+
+    useEffect(() => {
+        if (user?.email) {
+            // ডাটাবেজ থেকে ইউজারের রোল নিয়ে আসা
+            fetch(`https://fatema-naz-server-lpu3-j6k8h4516.vercel.app/user/role/${user.email}`)
+                .then(res => res.json())
+                .then(data => setDbUser(data));
+        }
+    }, [user]);
 
     const handleLogOut = () => {
         logOut()
@@ -61,11 +73,17 @@ const FatemaNaz = () => {
                             {user ? (
                                 <div className="flex items-center gap-3 bg-gray-50 p-1.5 pr-4 rounded-full border border-gray-100">
                                     <img src={user?.photoURL} alt="user" className="w-8 h-8 rounded-full border-2 border-white shadow-sm" />
-                                    <div className="hidden md:block">
-                                        <p className="text-xs font-bold text-gray-700 leading-none">{user?.displayName}</p>
-                                        <p className="text-[10px] text-gray-400 uppercase tracking-tighter">অ্যাডমিন</p>
+                                    {/* ইউজার সেভ অংশ পরিবর্তন করুন */}
+                                    <div className="hidden md:block text-left">
+                                        <p className="text-xs font-bold text-gray-700 leading-none">
+                                            {user?.displayName}
+                                        </p>
+                                        <p className="text-[10px] text-primary font-bold uppercase tracking-tighter mt-1">
+                                            {/* এখানে পরিবর্তন করা হয়েছে */}
+                                            {dbUser?.role === 'admin' ? 'অ্যাডমিন' : 'সাধারণ ইউজার'}
+                                        </p>
                                     </div>
-                                    <button 
+                                    <button
                                         onClick={handleLogOut}
                                         className="ml-2 btn btn-xs btn-ghost text-red-500 hover:bg-red-50 rounded-full"
                                     >
@@ -73,7 +91,7 @@ const FatemaNaz = () => {
                                     </button>
                                 </div>
                             ) : (
-                                <button 
+                                <button
                                     onClick={() => navigate('/login')}
                                     className="btn btn-primary btn-sm rounded-full px-6 shadow-lg shadow-primary/20"
                                 >
@@ -98,9 +116,9 @@ const FatemaNaz = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                    
+
                     {/* কার্ড ১: ফাতেমা নাজ পেট্রোলিয়াম */}
-                    <div 
+                    <div
                         onClick={() => handleNavigation('/fatema-naz-details')}
                         className="group relative bg-white rounded-[2rem] p-1 shadow-xl hover:shadow-2xl transition-all duration-500 cursor-pointer overflow-hidden border border-gray-50"
                     >
@@ -113,7 +131,7 @@ const FatemaNaz = () => {
                             <h2 className="text-3xl font-black text-gray-800 mb-4">ফাতেমা নাজ পেট্রোলিয়াম</h2>
                             <p className="text-gray-400 mb-8 max-w-xs text-center font-medium">ট্রিপ হিস্ট্রি, লরী ওয়ার্ক এবং কস্টিং সম্পর্কিত বিস্তারিত ডাটাবেজ</p>
                             <div className="flex items-center gap-2 text-secondary font-bold group-hover:translate-x-2 transition-transform">
-                                বিস্তারিত দেখুন 
+                                বিস্তারিত দেখুন
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                     <path fillRule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
                                 </svg>
@@ -122,7 +140,7 @@ const FatemaNaz = () => {
                     </div>
 
                     {/* কার্ড ২: ইমাম হোসেন পেট্রোলিয়াম */}
-                    <div 
+                    <div
                         onClick={() => handleNavigation('/imam-hossain-details')}
                         className="group relative bg-white rounded-[2rem] p-1 shadow-xl hover:shadow-2xl transition-all duration-500 cursor-pointer overflow-hidden border border-gray-50"
                     >
@@ -135,7 +153,7 @@ const FatemaNaz = () => {
                             <h2 className="text-3xl font-black text-gray-800 mb-4">ইমাম হোসেন পেট্রোলিয়াম</h2>
                             <p className="text-gray-400 mb-8 max-w-xs text-center font-medium">চালান রিপোর্ট এবং তেল সরবরাহ ট্র্যাকিং সিস্টেম</p>
                             <div className="flex items-center gap-2 text-primary font-bold group-hover:translate-x-2 transition-transform">
-                                বিস্তারিত দেখুন 
+                                বিস্তারিত দেখুন
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                     <path fillRule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
                                 </svg>

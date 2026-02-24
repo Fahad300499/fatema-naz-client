@@ -1,11 +1,25 @@
-import React from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
+import { AuthContext } from '../../Pages/providers/AuthContext';
+
 
 const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
+  const [dbUser, setDbUser] = useState(null);
+
+  // ডাটাবেজ থেকে রোল নিয়ে আসা
+  useEffect(() => {
+    if (user?.email) {
+      fetch(`https://fatema-naz-server-lpu3-j6k8h4516.vercel.app/user/role/${user.email}`)
+        .then(res => res.json())
+        .then(data => setDbUser(data));
+    }
+  }, [user]);
 
   const isActive = (path) => location.pathname === path;
+  const isAdmin = dbUser?.role === 'admin';
 
   return (
     <nav className="max-w-7xl mx-auto px-4 mt-10">
@@ -26,7 +40,7 @@ const Navbar = () => {
       {/* --- কার্ড মেনু সেকশন --- */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 justify-items-center">
         
-        {/* কার্ড ১: Per Trip Costing Amount */}
+        {/* কার্ড ১: Per Trip Costing Amount (সবাই দেখবে) */}
         <Link to="/per-trip-cost" className="w-full">
           <div className={`group relative p-6 rounded-3xl transition-all duration-300 border-2 overflow-hidden h-full
             ${isActive('/per-trip-cost') ? 'border-orange-500 bg-orange-50 shadow-xl scale-105' : 'border-gray-200 bg-white hover:border-orange-200 hover:shadow-2xl hover:-translate-y-1'}`}>
@@ -38,132 +52,109 @@ const Navbar = () => {
                 </svg>
               </div>
               <h3 className="text-xl font-bold text-gray-800 leading-tight">Per Trip <br /> Costing Amount</h3>
-              <div className={`mt-4 h-1 w-12 rounded-full transition-all ${isActive('/per-trip-cost') ? 'bg-orange-500 w-20' : 'bg-gray-200 group-hover:bg-orange-300 group-hover:w-20'}`}></div>
             </div>
           </div>
         </Link>
 
-        {/* কার্ড ২: Trip History */}
-        <Link to="/trip-history" className="w-full">
-          <div className={`group relative p-6 rounded-3xl transition-all duration-300 border-2 overflow-hidden h-full
-            ${isActive('/trip-history') ? 'border-blue-600 bg-blue-50 shadow-xl scale-105' : 'border-gray-200 bg-white hover:border-blue-200 hover:shadow-2xl hover:-translate-y-1'}`}>
-            <div className="absolute -right-4 -bottom-4 h-20 w-20 bg-blue-600/10 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
-            <div className="flex flex-col items-center text-center relative z-10">
-              <div className={`mb-4 p-4 rounded-2xl transition-all ${isActive('/trip-history') ? 'bg-blue-600 text-white shadow-lg' : 'bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white'}`}>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-gray-800 leading-tight">Trip <br /> History</h3>
-              <div className={`mt-4 h-1 w-12 rounded-full transition-all ${isActive('/trip-history') ? 'bg-blue-600 w-20' : 'bg-gray-200 group-hover:bg-blue-300 group-hover:w-20'}`}></div>
+        {/* কার্ড ২: Trip History (শুধু অ্যাডমিন) */}
+        {isAdmin && (
+          <Link to="/trip-history" className="w-full">
+            <div className={`group relative p-6 rounded-3xl transition-all duration-300 border-2 overflow-hidden h-full
+              ${isActive('/trip-history') ? 'border-blue-600 bg-blue-50 shadow-xl scale-105' : 'border-gray-200 bg-white hover:border-blue-200 hover:shadow-2xl hover:-translate-y-1'}`}>
+               <div className="absolute -right-4 -bottom-4 h-20 w-20 bg-blue-600/10 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
+               <div className="flex flex-col items-center text-center relative z-10">
+                  <div className={`mb-4 p-4 rounded-2xl transition-all ${isActive('/trip-history') ? 'bg-blue-600 text-white shadow-lg' : 'bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white'}`}>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-800 leading-tight">Trip <br /> History</h3>
+               </div>
             </div>
-          </div>
-        </Link>
+          </Link>
+        )}
 
-        {/* কার্ড ৩: Total Lory Of Fatema Naz */}
-        <Link to="/fatema-total-lory" className="w-full">
-          <div className={`group relative p-6 rounded-3xl transition-all duration-300 border-2 overflow-hidden h-full
-            ${isActive('/fatema-total-lory') ? 'border-green-600 bg-green-50 shadow-xl scale-105' : 'border-gray-200 bg-white hover:border-green-200 hover:shadow-2xl hover:-translate-y-1'}`}>
-            <div className="absolute -right-4 -bottom-4 h-20 w-20 bg-green-500/10 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
-            <div className="flex flex-col items-center text-center relative z-10">
-              <div className={`mb-4 p-4 rounded-2xl transition-all ${isActive('/fatema-total-lory') ? 'bg-green-600 text-white shadow-lg' : 'bg-green-50 text-green-600 group-hover:bg-green-600 group-hover:text-white'}`}>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-gray-800 leading-tight">Total Lory Of <br /> Fatema Naz</h3>
-              <div className={`mt-4 h-1 w-12 rounded-full transition-all ${isActive('/fatema-total-lory') ? 'bg-green-600 w-20' : 'bg-gray-200 group-hover:bg-green-300 group-hover:w-20'}`}></div>
+        {/* কার্ড ৩: Total Lory Of Fatema Naz (শুধু অ্যাডমিন) */}
+        {isAdmin && (
+          <Link to="/fatema-total-lory" className="w-full">
+            <div className={`group relative p-6 rounded-3xl transition-all duration-300 border-2 overflow-hidden h-full
+              ${isActive('/fatema-total-lory') ? 'border-green-600 bg-green-50 shadow-xl scale-105' : 'border-gray-200 bg-white hover:border-green-200 hover:shadow-2xl hover:-translate-y-1'}`}>
+               <div className="absolute -right-4 -bottom-4 h-20 w-20 bg-green-500/10 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
+               <div className="flex flex-col items-center text-center relative z-10">
+                  <div className={`mb-4 p-4 rounded-2xl transition-all ${isActive('/fatema-total-lory') ? 'bg-green-600 text-white shadow-lg' : 'bg-green-50 text-green-600 group-hover:bg-green-600 group-hover:text-white'}`}>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-800 leading-tight">Total Lory Of <br /> Fatema Naz</h3>
+               </div>
             </div>
-          </div>
-        </Link>
+          </Link>
+        )}
 
-        {/* কার্ড ৪: Dip Chalan (নতুন আপডেট) */}
+        {/* কার্ড ৪: Dip Chalan (সবাই দেখবে) */}
         <Link to="/dip-chalan" className="w-full">
           <div className={`group relative p-6 rounded-3xl transition-all duration-300 border-2 overflow-hidden h-full
-            ${isActive('/dip-chalan') 
-              ? 'border-indigo-600 bg-indigo-50 shadow-xl scale-105' 
-              : 'border-gray-200 bg-white hover:border-indigo-200 hover:shadow-2xl hover:-translate-y-1'}`}>
-            
-            <div className="absolute -right-4 -bottom-4 h-20 w-20 bg-indigo-600/10 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
-
+            ${isActive('/dip-chalan') ? 'border-indigo-600 bg-indigo-50 shadow-xl scale-105' : 'border-gray-200 bg-white hover:border-indigo-200 hover:shadow-2xl hover:-translate-y-1'}`}>
             <div className="flex flex-col items-center text-center relative z-10">
               <div className={`mb-4 p-4 rounded-2xl transition-all ${isActive('/dip-chalan') ? 'bg-indigo-600 text-white shadow-lg' : 'bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white'}`}>
-                {/* ডিপ চ্যালান আইকন: ডকুমেন্ট + পেন্সিল */}
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
               </div>
               <h3 className="text-xl font-bold text-gray-800 leading-tight">Dip <br /> Chalan</h3>
-              <div className={`mt-4 h-1 w-12 rounded-full transition-all ${isActive('/dip-chalan') ? 'bg-indigo-600 w-20' : 'bg-gray-200 group-hover:bg-indigo-300 group-hover:w-20'}`}></div>
             </div>
           </div>
         </Link>
 
-        {/* কার্ড ৫: Chalan Report (নতুন আপডেট) */}
-        <Link to="/chalan-report" className="w-full">
-          <div className={`group relative p-6 rounded-3xl transition-all duration-300 border-2 overflow-hidden h-full
-            ${isActive('/chalan-report') 
-              ? 'border-rose-500 bg-rose-50 shadow-xl scale-105' 
-              : 'border-gray-200 bg-white hover:border-rose-200 hover:shadow-2xl hover:-translate-y-1'}`}>
-            
-            <div className="absolute -right-4 -bottom-4 h-20 w-20 bg-rose-500/10 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
-
-            <div className="flex flex-col items-center text-center relative z-10">
-              <div className={`mb-4 p-4 rounded-2xl transition-all ${isActive('/chalan-report') ? 'bg-rose-500 text-white shadow-lg' : 'bg-rose-50 text-rose-500 group-hover:bg-rose-500 group-hover:text-white'}`}>
-                {/* রিপোর্ট আইকন: ফাইল + চার্ট */}
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-gray-800 leading-tight">Chalan <br /> Report</h3>
-              <div className={`mt-4 h-1 w-12 rounded-full transition-all ${isActive('/chalan-report') ? 'bg-rose-500 w-20' : 'bg-gray-200 group-hover:bg-rose-300 group-hover:w-20'}`}></div>
+        {/* কার্ড ৫: Chalan Report (শুধু অ্যাডমিন) */}
+        {isAdmin && (
+          <Link to="/chalan-report" className="w-full">
+            <div className={`group relative p-6 rounded-3xl transition-all duration-300 border-2 overflow-hidden h-full
+              ${isActive('/chalan-report') ? 'border-rose-500 bg-rose-50 shadow-xl scale-105' : 'border-gray-200 bg-white hover:border-rose-200 hover:shadow-2xl hover:-translate-y-1'}`}>
+               <div className="flex flex-col items-center text-center relative z-10">
+                  <div className={`mb-4 p-4 rounded-2xl transition-all ${isActive('/chalan-report') ? 'bg-rose-500 text-white shadow-lg' : 'bg-rose-50 text-rose-500 group-hover:bg-rose-500 group-hover:text-white'}`}>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-800 leading-tight">Chalan <br /> Report</h3>
+               </div>
             </div>
-          </div>
-        </Link>
+          </Link>
+        )}
 
-        {/* কার্ড 6: Dip Chalan (নতুন আপডেট) */}
+        {/* কার্ড ৬: Lory Work (সবাই দেখবে) */}
         <Link to="/lory-work" className="w-full">
           <div className={`group relative p-6 rounded-3xl transition-all duration-300 border-2 overflow-hidden h-full
-            ${isActive('/dip-chalan') 
-              ? 'border-indigo-600 bg-indigo-50 shadow-xl scale-105' 
-              : 'border-gray-200 bg-white hover:border-indigo-200 hover:shadow-2xl hover:-translate-y-1'}`}>
-            
-            <div className="absolute -right-4 -bottom-4 h-20 w-20 bg-indigo-600/10 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
-
+            ${isActive('/lory-work') ? 'border-indigo-600 bg-indigo-50 shadow-xl scale-105' : 'border-gray-200 bg-white hover:border-indigo-200 hover:shadow-2xl hover:-translate-y-1'}`}>
             <div className="flex flex-col items-center text-center relative z-10">
               <div className={`mb-4 p-4 rounded-2xl transition-all ${isActive('/lory-work') ? 'bg-indigo-600 text-white shadow-lg' : 'bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white'}`}>
-                {/* ডিপ চ্যালান আইকন: ডকুমেন্ট + পেন্সিল */}
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
               </div>
               <h3 className="text-xl font-bold text-gray-800 leading-tight">Lory <br /> Work</h3>
-              <div className={`mt-4 h-1 w-12 rounded-full transition-all ${isActive('/lory-work') ? 'bg-indigo-600 w-20' : 'bg-gray-200 group-hover:bg-indigo-300 group-hover:w-20'}`}></div>
             </div>
           </div>
         </Link>
 
-        <Link to="/lory-work-history" className="w-full">
-          <div className={`group relative p-6 rounded-3xl transition-all duration-300 border-2 overflow-hidden h-full
-            ${isActive('/dip-chalan') 
-              ? 'border-indigo-600 bg-indigo-50 shadow-xl scale-105' 
-              : 'border-gray-200 bg-white hover:border-indigo-200 hover:shadow-2xl hover:-translate-y-1'}`}>
-            
-            <div className="absolute -right-4 -bottom-4 h-20 w-20 bg-indigo-600/10 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
-
-            <div className="flex flex-col items-center text-center relative z-10">
-              <div className={`mb-4 p-4 rounded-2xl transition-all ${isActive('/lory-work-history') ? 'bg-indigo-600 text-white shadow-lg' : 'bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white'}`}>
-                {/* ডিপ চ্যালান আইকন: ডকুমেন্ট + পেন্সিল */}
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-gray-800 leading-tight">Lory <br /> Work History</h3>
-              <div className={`mt-4 h-1 w-12 rounded-full transition-all ${isActive('/lory-work-history') ? 'bg-indigo-600 w-20' : 'bg-gray-200 group-hover:bg-indigo-300 group-hover:w-20'}`}></div>
+        {/* কার্ড ৭: Lory Work History (শুধু অ্যাডমিন) */}
+        {isAdmin && (
+          <Link to="/lory-work-history" className="w-full">
+            <div className={`group relative p-6 rounded-3xl transition-all duration-300 border-2 overflow-hidden h-full
+              ${isActive('/lory-work-history') ? 'border-indigo-600 bg-indigo-50 shadow-xl scale-105' : 'border-gray-200 bg-white hover:border-indigo-200 hover:shadow-2xl hover:-translate-y-1'}`}>
+               <div className="flex flex-col items-center text-center relative z-10">
+                  <div className={`mb-4 p-4 rounded-2xl transition-all ${isActive('/lory-work-history') ? 'bg-indigo-600 text-white shadow-lg' : 'bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white'}`}>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-800 leading-tight">Lory <br /> Work History</h3>
+               </div>
             </div>
-          </div>
-        </Link>
+          </Link>
+        )}
 
       </div>
     </nav>

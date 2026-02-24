@@ -12,7 +12,7 @@ const TripHistory = () => {
     const fetchTrips = async () => {
         try {
             // প্রোটোকলসহ সঠিক URL ব্যবহার করা হয়েছে
-            let url = new URL("http://localhost:3000/trips");
+            let url = new URL("https://fatema-naz-server-lpu3-j6k8h4516.vercel.app/trips");
             if (searchDate) url.searchParams.append("date", searchDate);
             const res = await fetch(url);
             const data = await res.json();

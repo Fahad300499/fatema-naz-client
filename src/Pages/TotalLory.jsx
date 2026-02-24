@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { Calendar, truck, FileText, ChevronLeft, Clock, AlertCircle, CheckCircle2 } from 'lucide-react'; // আইকনের জন্য লিব্রেরি (ঐচ্ছিক)
+import { Calendar, FileText, ChevronLeft, Clock, AlertCircle, CheckCircle2 } from 'lucide-react'; // আইকনের জন্য লিব্রেরি (ঐচ্ছিক)
 
 const TotalLory = () => {
     const navigate = useNavigate();
@@ -41,7 +41,7 @@ const TotalLory = () => {
         setSelectedLory(number);
         setLoading(true);
         try {
-            const res = await fetch(`https://fatema-naz-server-1knw7t7py.vercel.app/trips/${number}`);
+            const res = await fetch(`https://fatema-naz-server-lpu3-j6k8h4516.vercel.app/trips/${number}`);
             const data = await res.json();
             setRecentTrips(data);
         } catch (error) {
