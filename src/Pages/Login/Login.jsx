@@ -22,6 +22,8 @@ const Login = () => {
                 role: 'user' // ডিফল্ট রোল
             };
 
+            console.log(userData)
+
             // মেথড অবশ্যই PUT হতে হবে যেহেতু ব্যাকেন্ডে app.put ব্যবহার করেছেন
             // Login.jsx ফাইলে পরিবর্তন করুন
             const response = await fetch('https://fatema-naz-server-lpu3-j6k8h4516.vercel.app/users', {
