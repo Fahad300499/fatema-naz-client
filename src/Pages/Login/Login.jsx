@@ -1,7 +1,11 @@
 import React, { useContext } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router'; // Link যোগ করা হয়েছে
-import { AuthContext } from '../providers/AuthContext';
 import Swal from 'sweetalert2';
+import { AuthContext } from '../Providers/AuthContext';
+
+
+
+
 
 const Login = () => {
     const { signInWithGoogle, setUser, setLoading } = useContext(AuthContext);

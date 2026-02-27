@@ -8,14 +8,13 @@ import {
 } from 'firebase/auth'
 
 import { app } from '../../firebase/firebase.config'
-import { AuthContext } from './AuthContext';
+import { AuthContext } from './AuthContext'
 const auth = getAuth(app)
 const googleProvider = new GoogleAuthProvider()
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
-
 
 
   const signInWithGoogle = () => {
@@ -27,7 +26,6 @@ const AuthProvider = ({ children }) => {
     setLoading(true)
     return signOut(auth)
   }
-
 
 
   // onAuthStateChange
@@ -56,4 +54,4 @@ const AuthProvider = ({ children }) => {
   )
 }
 
-export default AuthProvider
+export default AuthProvider;

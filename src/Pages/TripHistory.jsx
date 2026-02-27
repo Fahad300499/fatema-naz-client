@@ -10,17 +10,25 @@ const TripHistory = () => {
     const [searchDate, setSearchDate] = useState("");
 
     const fetchTrips = async () => {
-        try {
-            // প্রোটোকলসহ সঠিক URL ব্যবহার করা হয়েছে
-            let url = new URL("https://fatema-naz-server-1.onrender.com/trips");
-            if (searchDate) url.searchParams.append("date", searchDate);
-            const res = await fetch(url);
-            const data = await res.json();
-            setTrips(data || []);
-        } catch (error) {
-            console.error("Error fetching trips:", error);
+    try {
+        // সহজ পদ্ধতি: টেম্পলেট লিটারেল ব্যবহার
+        let url = `https://fatema-naz-server-1.onrender.com/trips`;
+        
+        if (searchDate) {
+            url += `?date=${encodeURIComponent(searchDate)}`;
         }
-    };
+
+        const res = await fetch(url);
+        
+        if (!res.ok) throw new Error("Network response was not ok");
+        
+        const data = await res.json();
+        setTrips(data || []);
+    } catch (error) {
+        console.error("Error fetching trips:", error);
+        setTrips([]); // এরর হলে খালি অ্যারে সেট করা নিরাপদ
+    }
+};
 
     useEffect(() => { fetchTrips(); }, []);
 
