@@ -31,7 +31,7 @@ const Login = () => {
             // মেথড অবশ্যই PUT হতে হবে যেহেতু ব্যাকেন্ডে app.put ব্যবহার করেছেন
             // Login.jsx ফাইলে পরিবর্তন করুন
             // সংশোধিত fetch অংশ
-            const response = await fetch('https://fatema-naz-server-1.onrender.com/users', { // ৫০০০ পোর্ট এবং http ব্যবহার করুন
+            const response = await fetch('https://fatema-naz-server-2.onrender.com/users', { // ৫০০০ পোর্ট এবং http ব্যবহার করুন
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'

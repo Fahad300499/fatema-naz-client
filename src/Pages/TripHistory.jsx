@@ -12,7 +12,7 @@ const TripHistory = () => {
     const fetchTrips = async () => {
     try {
         // সহজ পদ্ধতি: টেম্পলেট লিটারেল ব্যবহার
-        let url = `https://fatema-naz-server-1.onrender.com/trips`;
+        let url = `https://fatema-naz-server-2.onrender.com/trips`;
         
         if (searchDate) {
             url += `?date=${encodeURIComponent(searchDate)}`;

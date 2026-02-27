@@ -81,7 +81,7 @@ const PerTripCost = () => {
 
     try {
         // এখানে https:// যোগ করা হয়েছে
-        const response = await fetch('https://fatema-naz-server-1.onrender.com/save-trips', {
+        const response = await fetch('https://fatema-naz-server-2.onrender.com/save-trips', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(finalSubmission),

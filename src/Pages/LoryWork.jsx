@@ -38,7 +38,7 @@ const LoryWork = () => {
 
     try {
         // আপনি যদি লোকালহোস্টে টেস্ট করেন তবে নিচের URL টি ব্যবহার করুন
-        const response = await fetch('https://fatema-naz-server-1.onrender.com/save-lory-work', {
+        const response = await fetch('https://fatema-naz-server-2.onrender.com/save-lory-work', {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json' 
