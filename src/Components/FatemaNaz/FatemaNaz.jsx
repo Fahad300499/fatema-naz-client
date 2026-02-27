@@ -1,8 +1,8 @@
 import React, { useContext } from 'react';
 import { useNavigate } from 'react-router';
 import Swal from 'sweetalert2';
-import { AuthContext } from '../../Pages/providers/AuthContext';
 import { useEffect, useState } from 'react'; // useEffect, useState যোগ করুন
+import { AuthContext } from '../../Pages/Providers/AuthContext';
 
 const FatemaNaz = () => {
     const navigate = useNavigate();

@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
-import { AuthContext } from '../../Pages/providers/AuthContext';
+import { AuthContext } from '../../Pages/Providers/AuthContext';
+
 
 
 const Navbar = () => {
