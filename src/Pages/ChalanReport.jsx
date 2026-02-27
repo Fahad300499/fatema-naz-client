@@ -14,7 +14,7 @@ const ChalanReport = () => {
     const fetchReport = async () => {
         setLoading(true);
         try {
-            const response = await axios.get(`https://fatema-naz-server-lpu3-j6k8h4516.vercel.app/chalans/${searchDate}`);
+            const response = await axios.get(`https://fatema-naz-server-1.onrender.com/chalans/${searchDate}`);
             setReportData(response.data);
         } catch (error) {
             console.error("রিপোর্ট আনতে সমস্যা হয়েছে", error);

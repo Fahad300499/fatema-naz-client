@@ -15,7 +15,7 @@ const Chalan = () => {
         const loadData = async () => {
             setLoading(true);
             try {
-                const response = await axios.get(`fatema-naz-server-1knw7t7py.vercel.app/chalans/${chalanDate}`);
+                const response = await axios.get(`https://fatema-naz-server-1.onrender.com/chalans/${chalanDate}`);
                 setAllChalan(response.data.entries || []);
                 setCompanyName(response.data.companyName || 'মেসার্স ফাতেমা নাজ পেট্রোলিয়াম');
             } catch (error) {
@@ -30,7 +30,7 @@ const Chalan = () => {
     // ডাটাবেজে সেভ করার ফাংশন
     const saveToDB = async (updatedEntries) => {
         try {
-            await axios.post('https://fatema-naz-server-lpu3-j6k8h4516.vercel.app/chalans', {
+            await axios.post('https://fatema-naz-server-1.onrender.com/chalans', {
                 date: chalanDate,
                 companyName,
                 entries: updatedEntries

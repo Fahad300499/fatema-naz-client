@@ -13,7 +13,7 @@ const FatemaNaz = () => {
     useEffect(() => {
         if (user?.email) {
             // ডাটাবেজ থেকে ইউজারের রোল নিয়ে আসা
-            fetch(`https://fatema-naz-server-lpu3-j6k8h4516.vercel.app/user/role/${user.email}`)
+            fetch(`https://fatema-naz-server-1.onrender.com/user/role/${user.email}`)
                 .then(res => res.json())
                 .then(data => setDbUser(data));
         }

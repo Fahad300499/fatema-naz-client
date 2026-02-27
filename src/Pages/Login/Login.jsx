@@ -26,13 +26,19 @@ const Login = () => {
 
             // মেথড অবশ্যই PUT হতে হবে যেহেতু ব্যাকেন্ডে app.put ব্যবহার করেছেন
             // Login.jsx ফাইলে পরিবর্তন করুন
-            const response = await fetch('https://fatema-naz-server-lpu3-j6k8h4516.vercel.app/users', {
+            // সংশোধিত fetch অংশ
+            const response = await fetch('https://fatema-naz-server-1.onrender.com/users', { // ৫০০০ পোর্ট এবং http ব্যবহার করুন
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(userData)
             });
+
+            // রেসপন্স চেক করার জন্য এটি যোগ করতে পারেন
+            if (!response.ok) {
+                throw new Error('নেটওয়ার্ক রেসপন্স ঠিক নেই');
+            }
 
             const data = await response.json();
 

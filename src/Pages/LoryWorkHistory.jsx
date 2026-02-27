@@ -12,7 +12,7 @@ const LoryWorkHistory = () => {
         setLoading(true);
         try {
             // আপনার ব্যাকএন্ডের সঠিক URL ব্যবহার করুন
-            const response = await fetch('https://fatema-naz-server-lpu3-j6k8h4516.vercel.app/all-lory-works'); 
+            const response = await fetch('https://fatema-naz-server-1.onrender.com/all-lory-works'); 
             const data = await response.json();
             setAllHistory(data);
             setFilteredHistory(data);
