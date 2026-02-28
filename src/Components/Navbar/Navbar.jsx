@@ -13,7 +13,7 @@ const Navbar = () => {
   // ডাটাবেজ থেকে রোল নিয়ে আসা
   useEffect(() => {
     if (user?.email) {
-      fetch(`https://fatema-naz-server-2.onrender.com/user/role/${user.email}`)
+      fetch(`https://fatema-naz-server-3.onrender.com/user/role/${user.email}`)
         .then(res => res.json())
         .then(data => setDbUser(data));
     }
