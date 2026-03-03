@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { useNavigate } from 'react-router';
 import Swal from 'sweetalert2';
-import { AuthContext } from '../Providers/AuthContext'; // পাথ চেক করে নিন
+import { AuthContext } from '../../Pages/Providers/AuthContext';
 
 const FatemaNaz = () => {
     const navigate = useNavigate();
