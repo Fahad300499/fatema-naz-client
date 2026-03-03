@@ -32,7 +32,7 @@ const AuthProvider = ({ children }) => {
   // ইউজার রোল ফেচ করার ফাংশন
   const fetchUserRole = async (email) => {
     try {
-      const res = await fetch(`https://fatema-naz-server-3.onrender.com/user/role/${email}`);
+      const res = await fetch(`https://fatema-naz-server-5.onrender.com/user/role/${email}`);
       const data = await res.json();
       setDbUser(data);
     } catch (error) {

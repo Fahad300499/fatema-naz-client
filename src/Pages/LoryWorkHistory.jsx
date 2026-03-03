@@ -13,7 +13,7 @@ const LoryWorkHistory = () => {
     const fetchAllHistory = async () => {
         setLoading(true);
         try {
-            const response = await fetch('https://fatema-naz-server-3.onrender.com/all-lory-works'); 
+            const response = await fetch('https://fatema-naz-server-5.onrender.com/all-lory-works'); 
             const data = await response.json();
             setAllHistory(data);
             setFilteredHistory(data);

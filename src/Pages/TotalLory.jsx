@@ -36,7 +36,7 @@ const TotalLory = () => {
         setSelectedLory(number);
         setLoading(true);
         try {
-            const res = await fetch(`https://fatema-naz-server-3.onrender.com/trips/${number}`);
+            const res = await fetch(`https://fatema-naz-server-5.onrender.com/trips/${number}`);
             const data = await res.json();
             setRecentTrips(data);
         } catch (error) {

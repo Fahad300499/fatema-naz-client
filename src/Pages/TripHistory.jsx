@@ -15,7 +15,7 @@ const TripHistory = () => {
     const fetchTrips = async () => {
         try {
             setHasSearched(true); // ইউজার সার্চ বাটনে ক্লিক করেছেন
-            let url = `https://fatema-naz-server-3.onrender.com/trips`;
+            let url = `https://fatema-naz-server-5.onrender.com/trips`;
             
             // যদি নির্দিষ্ট তারিখ থাকে তবে সেটা পাঠানো হবে
             if (searchDate) {
