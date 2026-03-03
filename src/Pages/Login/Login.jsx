@@ -4,7 +4,6 @@ import Swal from 'sweetalert2';
 import { AuthContext } from '../Providers/AuthContext';
 
 const Login = () => {
-    // AuthContext থেকে fetchUserRole নিয়ে আসা হয়েছে (যা আমরা AuthProvider এ সেট করেছিলাম)
     const { signInWithGoogle, setUser, setLoading, fetchUserRole } = useContext(AuthContext);
     const navigate = useNavigate();
     const location = useLocation();
@@ -14,9 +13,11 @@ const Login = () => {
     const handleGoogleLogin = async () => {
         setLoading(true);
         try {
+            // ১. ফায়ারবেস পপ-আপের মাধ্যমে লগইন
             const result = await signInWithGoogle();
             const loggedUser = result.user;
 
+            // পপ-আপ সফলভাবে বন্ধ না হলেও ইউজার ডাটা আমরা পেয়ে গেছি
             const userData = {
                 name: loggedUser.displayName,
                 email: loggedUser.email,
@@ -24,24 +25,26 @@ const Login = () => {
                 role: 'user' 
             };
 
-            // ১. ডাটাবেজে ইউজার সেভ বা আপডেট করা (ব্যাকগ্রাউন্ডে চলবে)
-            const response = await fetch('https://fatema-naz-server-5.onrender.com/users', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(userData)
-            });
-
-            if (!response.ok) throw new Error('সার্ভার রেসপন্স ঠিক নেই');
-
-            // ২. লগইন সফল হলে সাথে সাথে রোল ফেচ করা
-            if (fetchUserRole) {
-                await fetchUserRole(loggedUser.email);
+            // ২. সার্ভারে ডাটা পাঠানো এবং রোল ফেচ করা (প্যারালাল প্রসেস)
+            // এর ফলে একটির জন্য অন্যটি আটকে থাকবে না
+            try {
+                await fetch('https://fatema-naz-server-5.onrender.com/users', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+                
+                if (fetchUserRole) {
+                    await fetchUserRole(loggedUser.email);
+                }
+            } catch (serverError) {
+                console.error("Server sync error:", serverError);
+                // সার্ভারে সমস্যা হলেও আমরা ইউজারকে লগইন করতে দেব যদি সেশন থাকে
             }
 
+            // ৩. স্টেট সেট এবং নেভিগেশন
             setUser(loggedUser);
-
+            
             Swal.fire({
                 title: 'সফল লগইন!',
                 text: `স্বাগতম, ${loggedUser.displayName}`,
@@ -50,11 +53,15 @@ const Login = () => {
                 showConfirmButton: false
             });
 
+            // সফল হলে সাথে সাথে সরিয়ে দেওয়া (পপ-আপ এরর কনসোলে থাকলেও ইউজার ড্যাশবোর্ডে চলে যাবে)
             navigate(from, { replace: true });
 
         } catch (error) {
             console.error("Login Error:", error.message);
-            Swal.fire('ভুল হয়েছে!', 'সার্ভারে কানেক্ট করা যাচ্ছে না বা সেশন আউট হয়েছে।', 'error');
+            // পপ-আপ বন্ধ হওয়ার এররটি সাধারণত 'auth/popup-closed-by-user' হিসেবে আসে
+            if (error.code !== 'auth/popup-closed-by-user') {
+                Swal.fire('ভুল হয়েছে!', 'লগইন প্রসেসটি সম্পন্ন করা যায়নি।', 'error');
+            }
         } finally {
             setLoading(false);
         }
@@ -62,12 +69,8 @@ const Login = () => {
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8fafc] p-4">
-            {/* ব্যাক বাটন */}
             <div className="mb-6">
-                <Link
-                    to="/"
-                    className="flex items-center gap-2 text-gray-500 hover:text-primary transition-colors font-medium text-sm group"
-                >
+                <Link to="/" className="flex items-center gap-2 text-gray-500 hover:text-primary transition-colors font-medium text-sm group">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
@@ -77,7 +80,6 @@ const Login = () => {
 
             <div className="max-w-md w-full bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-gray-100 relative">
                 <div className="h-2 bg-gradient-to-r from-primary via-blue-400 to-secondary"></div>
-
                 <div className="p-10 text-center">
                     <div className="relative inline-flex mb-8">
                         <div className="absolute inset-0 bg-primary/20 rounded-full animate-ping"></div>
@@ -87,15 +89,13 @@ const Login = () => {
                             </svg>
                         </div>
                     </div>
-
-                    <h2 className="text-3xl font-black text-gray-800 noto-serif mb-2">লগইন করুন</h2>
-                    <p className="text-gray-400 text-sm font-medium">ফাতেমা নাজ পেট্রোলিয়াম ম্যানেজমেন্ট সিস্টেম</p>
-
+                    <h2 className="text-3xl font-black text-gray-800 mb-2">লগইন করুন</h2>
+                    <p className="text-gray-400 text-sm">ফাতেমা নাজ পেট্রোলিয়াম ম্যানেজমেন্ট সিস্টেম</p>
                     <div className="divider my-10 text-gray-300 text-[10px] uppercase tracking-[0.3em] font-bold">অ্যাক্সেস গেটওয়ে</div>
 
                     <button
                         onClick={handleGoogleLogin}
-                        className="w-full flex items-center justify-center gap-4 py-4 px-6 bg-white border-2 border-gray-100 rounded-2xl hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 group active:scale-95"
+                        className="w-full flex items-center justify-center gap-4 py-4 px-6 bg-white border-2 border-gray-100 rounded-2xl hover:border-primary/30 hover:shadow-xl transition-all duration-300 group active:scale-95"
                     >
                         <svg className="w-6 h-6 group-hover:rotate-12 transition-transform" viewBox="0 0 48 48">
                             <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z" />
@@ -110,16 +110,12 @@ const Login = () => {
 
                     <div className="mt-10 pt-6 border-t border-gray-50">
                         <p className="text-xs text-gray-400 mb-4">লগইন করতে সমস্যা হচ্ছে?</p>
-                        <button
-                            onClick={() => navigate('/')}
-                            className="text-primary font-bold text-sm hover:underline decoration-2 underline-offset-4"
-                        >
+                        <button onClick={() => navigate('/')} className="text-primary font-bold text-sm hover:underline">
                             সরাসরি ড্যাশবোর্ড (পাবলিক ভিউ)
                         </button>
                     </div>
                 </div>
             </div>
-            <p className="mt-8 text-xs text-gray-400 font-medium">নিরাপত্তার স্বার্থে আপনার তথ্য এনক্রিপ্ট করা হয়।</p>
         </div>
     );
 };
