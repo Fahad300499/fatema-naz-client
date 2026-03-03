@@ -1,25 +1,17 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { AuthContext } from '../../Pages/Providers/AuthContext';
-
-
 
 const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user } = useContext(AuthContext);
-  const [dbUser, setDbUser] = useState(null);
-
-  // ডাটাবেজ থেকে রোল নিয়ে আসা
-  useEffect(() => {
-    if (user?.email) {
-      fetch(`https://fatema-naz-server-3.onrender.com/user/role/${user.email}`)
-        .then(res => res.json())
-        .then(data => setDbUser(data));
-    }
-  }, [user]);
+  
+  // AuthContext থেকে সরাসরি user এবং dbUser (রোল সহ) নিয়ে আসা হচ্ছে
+  const { user, dbUser } = useContext(AuthContext);
 
   const isActive = (path) => location.pathname === path;
+  
+  // এখন আর fetch করার প্রয়োজন নেই, dbUser সরাসরি এভেলেবল
   const isAdmin = dbUser?.role === 'admin';
 
   return (
@@ -41,7 +33,7 @@ const Navbar = () => {
       {/* --- কার্ড মেনু সেকশন --- */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 justify-items-center">
         
-        {/* কার্ড ১: Per Trip Costing Amount (সবাই দেখবে) */}
+        {/* কার্ড ১: Per Trip Costing Amount */}
         <Link to="/per-trip-cost" className="w-full">
           <div className={`group relative p-6 rounded-3xl transition-all duration-300 border-2 overflow-hidden h-full
             ${isActive('/per-trip-cost') ? 'border-orange-500 bg-orange-50 shadow-xl scale-105' : 'border-gray-200 bg-white hover:border-orange-200 hover:shadow-2xl hover:-translate-y-1'}`}>
@@ -93,7 +85,7 @@ const Navbar = () => {
           </Link>
         )}
 
-        {/* কার্ড ৪: Dip Chalan (সবাই দেখবে) */}
+        {/* কার্ড ৪: Dip Chalan */}
         <Link to="/dip-chalan" className="w-full">
           <div className={`group relative p-6 rounded-3xl transition-all duration-300 border-2 overflow-hidden h-full
             ${isActive('/dip-chalan') ? 'border-indigo-600 bg-indigo-50 shadow-xl scale-105' : 'border-gray-200 bg-white hover:border-indigo-200 hover:shadow-2xl hover:-translate-y-1'}`}>
@@ -125,7 +117,7 @@ const Navbar = () => {
           </Link>
         )}
 
-        {/* কার্ড ৬: Lory Work (সবাই দেখবে) */}
+        {/* কার্ড ৬: Lory Work */}
         <Link to="/lory-work" className="w-full">
           <div className={`group relative p-6 rounded-3xl transition-all duration-300 border-2 overflow-hidden h-full
             ${isActive('/lory-work') ? 'border-indigo-600 bg-indigo-50 shadow-xl scale-105' : 'border-gray-200 bg-white hover:border-indigo-200 hover:shadow-2xl hover:-translate-y-1'}`}>

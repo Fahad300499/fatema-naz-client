@@ -1,30 +1,31 @@
 import React from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router'; 
 
 const PerTripCost = () => {
+    const navigate = useNavigate(); 
     const fixedLorryNumbers = [
         "41-0545", "41-0546", "41-0752", "41-0754", "41-0763", 
         "41-0764", "41-0298", "41-0299", "41-0639", "44-0640", 
         "44-0783"
     ];
 
-    const { register, control, handleSubmit, watch } = useForm({
+    const { register, control, handleSubmit, watch, reset } = useForm({
         defaultValues: {
             date: new Date().toISOString().split('T')[0],
             dipoName: "Meghna Parbatipur",
             tripNo: "",
             rows: fixedLorryNumbers.map((lorry) => ({
                 lorryNo: lorry,
-                driverName: "",
+                driverName: "", 
                 product: "MS",
                 totalAmount: 0,
                 payment1: 0,
                 fine: 0,
                 security: 0,
-                dieselPabe: 0,    // ১. ডিজেল পাবে (Liter)
-                dieselKhoroch: 0, // ২. ডিজেল খরচ (Liter)
-                dieselRate: 0     // ৪. ডিজেল মূল্য (Rate)
+                dieselPabe: 0,
+                dieselKhoroch: 0,
+                dieselRate: 0
             }))
         }
     });
@@ -32,7 +33,6 @@ const PerTripCost = () => {
     const { fields } = useFieldArray({ control, name: "rows" });
     const watchRows = watch("rows");
 
-    // ক্যালকুলেশন ফাংশন
     const calculateRowData = (index) => {
         const row = watchRows[index];
         const total = Number(row?.totalAmount) || 0;
@@ -40,76 +40,74 @@ const PerTripCost = () => {
         const sc = Number(row?.security) || 0;
         const fine = Number(row?.fine) || 0;
         
-        // ২য় পেমেন্ট (পাওনা)
         const payment2 = total - (p1 + sc + fine);
 
-        // ডিজেল ক্যালকুলেশন
         const dPabe = Number(row?.dieselPabe) || 0;
         const dKhoroch = Number(row?.dieselKhoroch) || 0;
         const dRate = Number(row?.dieselRate) || 0;
 
-        const dieselBaki = dPabe - dKhoroch; // ৩. ডিজেল বাকি থাকে
-        const dieselBabodPabe = dieselBaki * dRate; // ৫. ডিজেল বাবদ পাবে (টাকায়)
-        
-        // ড্রাইভার মোট পাবে = ২য় পেমেন্ট + ডিজেল বাবদ পাবে
+        const dieselBaki = dPabe - dKhoroch;
+        const dieselBabodPabe = dieselBaki * dRate;
         const driverTotalReceive = payment2 + dieselBabodPabe;
 
         return { payment2, dieselBaki, dieselBabodPabe, driverTotalReceive };
     };
 
-    const getColumnTotal = (columnName) => {
-        return watchRows.reduce((acc, row) => acc + (Number(row[columnName]) || 0), 0);
-    };
-
     const onSubmit = async (data) => {
-    const finalRows = data.rows.map((row, index) => {
-        const calcs = calculateRowData(index);
-        return {
-            ...row,
-            payment2: calcs.payment2,
-            dieselBaki: calcs.dieselBaki,
-            dieselBabodPabe: calcs.dieselBabodPabe,
-            driverTotalReceive: calcs.driverTotalReceive
+        const filledRows = data.rows
+            .filter(row => row.driverName.trim() !== "" || Number(row.totalAmount) > 0)
+            .map((row, index) => {
+                const originalIndex = data.rows.findIndex(r => r.lorryNo === row.lorryNo);
+                const calcs = calculateRowData(originalIndex);
+                return {
+                    ...row,
+                    payment2: calcs.payment2,
+                    dieselBaki: calcs.dieselBaki,
+                    dieselBabodPabe: calcs.dieselBabodPabe,
+                    driverTotalReceive: calcs.driverTotalReceive
+                };
+            });
+
+        if (filledRows.length === 0) {
+            alert("⚠️ কোনো ডাটা ইনপুট দেওয়া হয়নি!");
+            return;
+        }
+
+        const finalSubmission = {
+            ...data,
+            rows: filledRows,
+            createdAt: new Date() 
         };
-    });
 
-    const finalSubmission = {
-        ...data,
-        rows: finalRows,
-        createdAt: new Date() 
+        try {
+            const response = await fetch('https://fatema-naz-server-3.onrender.com/save-trips', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(finalSubmission),
+            });
+
+            if (!response.ok) throw new Error(`সার্ভার এরর: ${response.status}`);
+
+            const result = await response.json();
+            if (result.insertedId) {
+                alert(`✅ সফলভাবে ${filledRows.length} টি গাড়ির ডাটা সেভ হয়েছে!`);
+                reset(); 
+            } else {
+                alert("⚠️ ডাটা সেভ হয়নি।");
+            }
+        } catch (error) {
+            console.error("Error posting data:", error);
+            alert("❌ সার্ভার কানেক্ট করা যাচ্ছে না!");
+        }
     };
-
-    try {
-        // এখানে https:// যোগ করা হয়েছে
-        const response = await fetch('https://fatema-naz-server-3.onrender.com/save-trips', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(finalSubmission),
-        });
-
-        // রেসপন্স চেক করা
-        if (!response.ok) {
-            throw new Error(`সার্ভার এরর: ${response.status}`);
-        }
-
-        const result = await response.json();
-        if (result.insertedId) {
-            alert("✅ সফলভাবে সেভ হয়েছে!");
-        } else {
-            alert("⚠️ ডাটা সেভ হয়নি, আবার চেষ্টা করুন।");
-        }
-    } catch (error) {
-        console.error("Error posting data:", error);
-        alert("❌ সার্ভার কানেক্ট করা যাচ্ছে না! (ইন্টারনেট বা URL চেক করুন)");
-    }
-};
 
     return (
         <div className="p-2 md:p-4 bg-base-200 min-h-screen">
-            <form onSubmit={handleSubmit(onSubmit)} className="max-w-[100%] mx-auto bg-white p-4 rounded-xl shadow-xl">
-                <h1 className='text-center font-bold text-2xl underline mb-6 text-primary'>Per Trip Costing Amount & Diesel Details</h1>
-
-                {/* টপ ইনপুট */}
+            <form onSubmit={handleSubmit(onSubmit)} className="max-w-[100%] mx-auto bg-white p-4 rounded-xl shadow-xl border border-slate-100">
+                <h1 className='text-center font-bold text-2xl underline mb-6 text-primary uppercase tracking-wider'>
+                    Trip Costing & Diesel Ledger
+                </h1>
+                
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <div className="form-control">
                         <label className="label font-bold">Date:</label>
@@ -125,47 +123,50 @@ const PerTripCost = () => {
                     </div>
                 </div>
 
-                <div className="overflow-x-auto">
-                    <table className="table table-compact w-full border text-center text-xs">
-                        <thead className="bg-gray-100">
+                <div className="overflow-x-auto rounded-lg border border-slate-200">
+                    <table className="table table-compact w-full text-center text-xs">
+                        <thead className="bg-slate-800 text-white">
                             <tr>
-                                <th>গাড়ী নং</th>
+                                <th className="py-3">গাড়ী নং</th>
+                                <th>ড্রাইভারের নাম</th>
                                 <th>মোট ভাড়া</th>
                                 <th>১ম পেমেন্ট</th>
                                 <th>জরিমানা</th>
                                 <th>জামানত</th>
-                                <th className="bg-yellow-100">২য় পেমেন্ট</th>
-                                <th className="bg-blue-50">ডিজেল পাবে (L)</th>
-                                <th className="bg-blue-50">ডিজেল খরচ (L)</th>
-                                <th className="bg-green-50">ডিজেল বাকি (L)</th>
-                                <th className="bg-blue-50">ডিজেল মূল্য (Rate)</th>
-                                <th className="bg-green-50">ডিজেল বাবদ পাবে (৳)</th>
-                                <th className="bg-orange-100 font-bold text-md">ড্রাইভার মোট পাবে</th>
+                                <th className="bg-yellow-600">২য় পেমেন্ট</th>
+                                <th className="bg-blue-700">ডিজেল (L)</th>
+                                <th className="bg-blue-700">খরচ (L)</th>
+                                <th className="bg-green-700">বাকি (L)</th>
+                                <th className="bg-blue-700">Rate</th>
+                                <th className="bg-green-700">ডিজেল (৳)</th>
+                                <th className="bg-orange-600 font-bold text-md">মোট পাবে</th>
                             </tr>
                         </thead>
                         <tbody>
                             {fields.map((field, index) => {
                                 const { payment2, dieselBaki, dieselBabodPabe, driverTotalReceive } = calculateRowData(index);
                                 return (
-                                    <tr key={field.id} className="hover">
+                                    <tr key={field.id} className="hover border-b">
                                         <td className="font-bold text-red-600">{watchRows[index].lorryNo}</td>
+                                        <td>
+                                            <input 
+                                                type="text" 
+                                                {...register(`rows.${index}.driverName`)} 
+                                                placeholder="নাম"
+                                                className="input input-bordered input-xs w-20 md:w-24 focus:input-primary" 
+                                            />
+                                        </td>
                                         <td><input type="number" {...register(`rows.${index}.totalAmount`)} className="input input-bordered input-xs w-16" /></td>
                                         <td><input type="number" {...register(`rows.${index}.payment1`)} className="input input-bordered input-xs w-16" /></td>
                                         <td><input type="number" {...register(`rows.${index}.fine`)} className="input input-bordered input-xs w-12 text-error" /></td>
                                         <td><input type="number" {...register(`rows.${index}.security`)} className="input input-bordered input-xs w-16" /></td>
                                         <td className="font-bold text-blue-700 bg-yellow-50">{payment2}</td>
-                                        
-                                        {/* ডিজেল ইনপুটস */}
                                         <td className="bg-blue-50"><input type="number" {...register(`rows.${index}.dieselPabe`)} className="input input-bordered input-xs w-14" /></td>
                                         <td className="bg-blue-50"><input type="number" {...register(`rows.${index}.dieselKhoroch`)} className="input input-bordered input-xs w-14" /></td>
                                         <td className="font-bold bg-green-50">{dieselBaki}</td>
                                         <td className="bg-blue-50"><input type="number" {...register(`rows.${index}.dieselRate`)} className="input input-bordered input-xs w-14" /></td>
                                         <td className="font-bold bg-green-50">{dieselBabodPabe}</td>
-                                        
-                                        {/* ড্রাইভার মোট পাবে */}
-                                        <td className="font-bold text-lg text-primary bg-orange-50">
-                                            {driverTotalReceive}
-                                        </td>
+                                        <td className="font-bold text-lg text-primary bg-orange-50">{driverTotalReceive}</td>
                                     </tr>
                                 );
                             })}
@@ -173,9 +174,37 @@ const PerTripCost = () => {
                     </table>
                 </div>
 
-                <div className="mt-8 flex gap-4 justify-center">
-                    <button type="submit" className="btn btn-primary px-12">Save Record</button>
-                    <Link to="/" className="btn btn-outline px-12">Go To Home</Link>
+                {/* বাটন সেকশন */}
+                <div className="mt-8 flex flex-wrap gap-3 justify-center items-center">
+                    <button 
+                        type="button" 
+                        onClick={() => navigate(-1)} 
+                        className="btn btn-outline btn-sm md:btn-md px-6 hover:bg-slate-800"
+                    >
+                        ❮ Back
+                    </button>
+
+                    <button 
+                        type="submit" 
+                        className="btn btn-primary btn-sm md:btn-md px-10 shadow-lg"
+                    >
+                        Save Record
+                    </button>
+
+                    <button 
+                        type="button" 
+                        onClick={() => reset()} 
+                        className="btn btn-ghost btn-sm md:btn-md border-slate-300"
+                    >
+                        Clear Form
+                    </button>
+
+                    <Link 
+                        to="/" 
+                        className="btn btn-outline btn-sm md:btn-md px-6"
+                    >
+                        Home
+                    </Link>
                 </div>
             </form>
         </div>
