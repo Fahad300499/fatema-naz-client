@@ -18,10 +18,16 @@ const AuthProvider = ({ children }) => {
   const [dbUser, setDbUser] = useState(null) // ডাটাবেজ থেকে আসা ইউজার রোল সেভ থাকবে এখানে
   const [loading, setLoading] = useState(true)
 
-  const signInWithGoogle = () => {
-    setLoading(true)
-    return signInWithPopup(auth, googleProvider)
+  const signInWithGoogle = async () => {
+  setLoading(true)
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    return result;
+  } catch (error) {
+    setLoading(false); // এরর হলে লোডিং অফ করে দিন
+    console.error("Login failed:", error.message);
   }
+}
 
   const logOut = async () => {
     setLoading(true)

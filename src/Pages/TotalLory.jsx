@@ -28,7 +28,7 @@ const TotalLory = () => {
     };
 
     const documentData = {
-        "taxToken": "2026-05-20", "fitness": "2026-02-28", "routePermit": "2025-12-15",
+        "taxToken": "2026-03-12", "fitness": "2026-03-13", "routePermit": "2025-3-13",
         "registration": "2028-10-10", "calibration": "2026-03-05", "exclusive": "2026-01-20"
     };
 
@@ -118,6 +118,109 @@ const TotalLory = () => {
             </div>
 
             {/* Modal এবং অন্যান্য কোড এখানে বসবে... */}
+            {/* --- Modal Section --- */}
+{selectedLory && (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+        <div className="bg-white w-full max-w-4xl max-h-[90vh] rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-300">
+            
+            {/* Modal Header */}
+            <div className="bg-slate-50 p-6 md:p-8 border-b flex justify-between items-center">
+                <div>
+                    <div className="flex items-center gap-3 mb-1">
+                        <div className="p-2 bg-blue-600 text-white rounded-lg">
+                            <FileText size={20} />
+                        </div>
+                        <h3 className="text-2xl font-black text-slate-800 font-mono italic tracking-tighter">
+                            {selectedLory}
+                        </h3>
+                    </div>
+                    <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">গাড়ীর বিস্তারিত এবং ইতিহাস</p>
+                </div>
+                <button 
+                    onClick={() => setSelectedLory(null)}
+                    className="p-3 hover:bg-red-50 hover:text-red-500 text-slate-400 rounded-2xl transition-all active:scale-90"
+                >
+                    <ChevronLeft size={24} className="rotate-180" />
+                </button>
+            </div>
+
+            {/* Modal Body (Scrollable) */}
+            <div className="flex-1 overflow-y-auto p-6 md:p-8">
+                
+                {/* 1. Document Status Grid */}
+                <div className="mb-10">
+                    <h4 className="text-sm font-black text-slate-800 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                        <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                        ডকুমেন্ট স্ট্যাটাস
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <DocumentItem title="Tax Token" date={documentData.taxToken} />
+                        <DocumentItem title="Fitness" date={documentData.fitness} />
+                        <DocumentItem title="Route Permit" date={documentData.routePermit} />
+                        <DocumentItem title="Calibration" date={documentData.calibration} />
+                        <DocumentItem title="Exclusive" date={documentData.exclusive} />
+                        <DocumentItem title="Registration" date={documentData.registration} />
+                    </div>
+                </div>
+
+                {/* 2. Recent Trips Table */}
+                {/* <div>
+                    <h4 className="text-sm font-black text-slate-800 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                        <div className="w-2 h-2 bg-indigo-600 rounded-full"></div>
+                        সাম্প্রতিক ট্রিপসমূহ
+                    </h4>
+                    
+                    {loading ? (
+                        <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+                            <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+                            <p className="font-bold animate-pulse">ডাটা লোড হচ্ছে...</p>
+                        </div>
+                    ) : recentTrips.length > 0 ? (
+                        <div className="border rounded-2xl overflow-hidden shadow-sm">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="bg-slate-800 text-white">
+                                            <th className="p-4 text-xs font-bold uppercase tracking-wider">তারিখ</th>
+                                            <th className="p-4 text-xs font-bold uppercase tracking-wider">গন্তব্য</th>
+                                            <th className="p-4 text-xs font-bold uppercase tracking-wider">তেলের পরিমাণ</th>
+                                            <th className="p-4 text-xs font-bold uppercase tracking-wider">ভাড়া (৳)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100 italic font-medium">
+                                        {recentTrips.map((trip, idx) => (
+                                            <tr key={idx} className="hover:bg-blue-50/50 transition-colors">
+                                                <td className="p-4 text-slate-600 text-sm">{trip.date || "N/A"}</td>
+                                                <td className="p-4 text-slate-800 font-bold text-sm">{trip.destination || "N/A"}</td>
+                                                <td className="p-4 text-blue-600 font-mono text-sm">{trip.fuelQty || "0"} L</td>
+                                                <td className="p-4 text-indigo-600 font-black text-sm">{trip.fare || "0"}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="text-center py-12 bg-slate-50 rounded-3xl border border-dashed border-slate-200">
+                            <AlertCircle className="mx-auto text-slate-300 mb-3" size={40} />
+                            <p className="text-slate-500 font-bold text-sm">কোন ট্রিপ ডাটা পাওয়া যায়নি!</p>
+                        </div>
+                    )}
+                </div> */}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-6 bg-slate-50 border-t flex justify-end">
+                <button 
+                    onClick={() => setSelectedLory(null)}
+                    className="px-8 py-3 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-900 hover:text-white transition-all duration-300"
+                >
+                    বন্ধ করুন
+                </button>
+            </div>
+        </div>
+    </div>
+)}
         </div>
     );
 };
