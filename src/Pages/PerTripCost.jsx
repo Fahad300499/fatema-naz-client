@@ -80,7 +80,7 @@ const PerTripCost = () => {
         };
 
         try {
-            const response = await fetch('https://fatema-naz-server-5.onrender.com/save-trips', {
+            const response = await fetch('https://api.ashrafulenterprise.com/save-trips', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(finalSubmission),
