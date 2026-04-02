@@ -15,7 +15,11 @@ const Chalan = () => {
         const loadData = async () => {
             setLoading(true);
             try {
+<<<<<<< HEAD
                 const response = await axios.get(`http://localhost:3000/chalans/${chalanDate}`);
+=======
+                const response = await axios.get(`https://api.ashrafulenterprise.com/chalans/${chalanDate}`);
+>>>>>>> d1e321465b69d96c83cff014cdb899ef5bba616e
                 setAllChalan(response.data.entries || []);
                 setCompanyName(response.data.companyName || 'মেসার্স ফাতেমা নাজ পেট্রোলিয়াম');
             } catch (error) {
@@ -30,7 +34,11 @@ const Chalan = () => {
     // ডাটাবেজে সেভ করার ফাংশন
     const saveToDB = async (updatedEntries) => {
         try {
+<<<<<<< HEAD
             await axios.post('http://localhost:3000/chalans', {
+=======
+            await axios.post('https://api.ashrafulenterprise.com/chalans', {
+>>>>>>> d1e321465b69d96c83cff014cdb899ef5bba616e
                 date: chalanDate,
                 companyName,
                 entries: updatedEntries

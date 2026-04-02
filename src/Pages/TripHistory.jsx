@@ -15,7 +15,11 @@ const TripHistory = () => {
     const fetchTrips = async () => {
         try {
             setHasSearched(true); // ইউজার সার্চ বাটনে ক্লিক করেছেন
+<<<<<<< HEAD
             let url = `http://localhost:3000/trips`;
+=======
+            let url = `https://api.ashrafulenterprise.com/trips`;
+>>>>>>> d1e321465b69d96c83cff014cdb899ef5bba616e
             
             // যদি নির্দিষ্ট তারিখ থাকে তবে সেটা পাঠানো হবে
             if (searchDate) {

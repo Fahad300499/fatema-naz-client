@@ -12,7 +12,11 @@ const LoryWorkHistory = () => {
     const fetchAllHistory = async () => {
         setLoading(true);
         try {
+<<<<<<< HEAD
             const response = await fetch('http://localhost:3000/all-lory-works'); 
+=======
+            const response = await fetch('https://api.ashrafulenterprise.com/all-lory-works'); 
+>>>>>>> d1e321465b69d96c83cff014cdb899ef5bba616e
             const data = await response.json();
             setAllHistory(data);
             setFilteredHistory(data);

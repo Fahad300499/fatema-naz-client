@@ -28,7 +28,11 @@ const Login = () => {
             // ২. সার্ভারে ডাটা পাঠানো এবং রোল ফেচ করা (প্যারালাল প্রসেস)
             // এর ফলে একটির জন্য অন্যটি আটকে থাকবে না
             try {
+<<<<<<< HEAD
                 await fetch('http://localhost:3000/users', {
+=======
+                await fetch('https://api.ashrafulenterprise.com/users', {
+>>>>>>> d1e321465b69d96c83cff014cdb899ef5bba616e
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(userData)
