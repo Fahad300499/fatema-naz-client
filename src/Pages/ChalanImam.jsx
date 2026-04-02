@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router';
 
-const Chalan = () => {
+const ChalanImam = () => {
     const navigate = useNavigate();
-    const [companyName, setCompanyName] = useState('মেসার্স ফাতেমা নাজ পেট্রোলিয়াম');
+    const [companyName, setCompanyName] = useState('মেসার্স ইমাম হোসেন');
     const [chalanDate, setChalanDate] = useState(new Date().toISOString().split('T')[0]);
     const [allChalan, setAllChalan] = useState([]);
     const [formData, setFormData] = useState({ sl: '', carNo: '', driver: '', product: '', depo: '', chalanNo: '' });
@@ -15,9 +15,9 @@ const Chalan = () => {
         const loadData = async () => {
             setLoading(true);
             try {
-                const response = await axios.get(`http://localhost:3000/chalans/${chalanDate}`);
+                const response = await axios.get(`http://localhost:3000/chalans-imam/${chalanDate}`);
                 setAllChalan(response.data.entries || []);
-                setCompanyName(response.data.companyName || 'মেসার্স ফাতেমা নাজ পেট্রোলিয়াম');
+                setCompanyName(response.data.companyName || 'মেসার্স ইমাম হোসেন');
             } catch (error) {
                 console.error("ডাটা লোড করতে সমস্যা:", error);
             } finally {
@@ -30,7 +30,7 @@ const Chalan = () => {
     // ডাটাবেজে সেভ করার ফাংশন
     const saveToDB = async (updatedEntries) => {
         try {
-            await axios.post('http://localhost:3000/chalans', {
+            await axios.post('http://localhost:3000/chalans-imam', {
                 date: chalanDate,
                 companyName,
                 entries: updatedEntries
@@ -41,17 +41,18 @@ const Chalan = () => {
     };
 
     const handleSubmit = (e) => {
-        e.preventDefault();
-        const updatedEntries = [...allChalan, formData];
-        setAllChalan(updatedEntries);
-        saveToDB(updatedEntries); 
-        
-        // ফর্ম রিসেট এবং পরবর্তী ক্র নং সেট করা
-        setFormData({ 
-            sl: allChalan.length + 2, // অটোমেটিক পরবর্তী সিরিয়াল
-            carNo: '', driver: '', product: '', depo: '', chalanNo: '' 
-        });
-    };
+    e.preventDefault();
+    const updatedEntries = [...allChalan, formData];
+    setAllChalan(updatedEntries);
+    
+    // সরাসরি কোম্পানির নামসহ সেভ করুন
+    saveToDB(updatedEntries); 
+    
+    setFormData({ 
+        sl: updatedEntries.length + 1, // sl ম্যানেজমেন্ট ঠিক করুন
+        carNo: '', driver: '', product: '', depo: '', chalanNo: '' 
+    });
+};
 
     // এন্ট্রি ডিলিট করার ফাংশন (প্রয়োজন হলে)
     const handleDelete = (index) => {
@@ -110,20 +111,20 @@ const Chalan = () => {
                     <p className="underline font-bold mt-1 text-black">চালানের হিসাব</p>
                     
                     <div className="flex justify-between mt-6 px-2">
-                        {/* <p className="font-bold text-black text-sm">Bil No: {chalanDate.replace(/-/g, '')}</p> */}
-                        <p className="font-bold text-black text-sm">Date: {chalanDate}</p>
+                        <p className="font-bold text-black text-sm">বিল নং: {chalanDate.replace(/-/g, '')}</p>
+                        <p className="font-bold text-black text-sm">তারিখ: {chalanDate}</p>
                     </div>
                     
                     <table className="table w-full mt-4 border-collapse border border-black text-black">
                         <thead>
                             <tr className="bg-gray-100 text-black">
-                                <th className="border border-black w-12 text-center">Sl.</th>
-                                <th className="border border-black text-center">Lory No</th>
-                                <th className="border border-black text-center">Driver</th>
-                                <th className="border border-black text-center">Product</th>
-                                <th className="border border-black text-center">Dipo</th>
-                                <th className="border border-black text-center">Chalan No</th>
-                                <th className="border border-black text-center no-print">Reject</th>
+                                <th className="border border-black w-12 text-center">ক্র.</th>
+                                <th className="border border-black text-center">গাড়ি নং</th>
+                                <th className="border border-black text-center">ড্রাইভার</th>
+                                <th className="border border-black text-center">পণ্য</th>
+                                <th className="border border-black text-center">ডিপো</th>
+                                <th className="border border-black text-center">চালান নং</th>
+                                <th className="border border-black text-center no-print">আপডেট</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -157,10 +158,10 @@ const Chalan = () => {
                     </table>
 
                     {/* সিগনেচার এরিয়া (প্রিন্ট এর জন্য) */}
-                    {/* <div className="mt-16 flex justify-between px-10 invisible print:visible">
+                    <div className="mt-16 flex justify-between px-10 invisible print:visible">
                         <p className="border-t border-black px-4 pt-1">ম্যানেজারের স্বাক্ষর</p>
                         <p className="border-t border-black px-4 pt-1">কর্তৃপক্ষের স্বাক্ষর</p>
-                    </div> */}
+                    </div>
                 </div>
 
                 {/* নিচের বাটনসমূহ */}
@@ -179,4 +180,4 @@ const Chalan = () => {
     );
 };
 
-export default Chalan;
+export default ChalanImam;

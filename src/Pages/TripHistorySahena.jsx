@@ -1,9 +1,9 @@
-import React, { useState, } from 'react';
+import React, { useState,} from 'react';
 import { useNavigate } from 'react-router';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
-const TripHistory = () => {
+const TripHistorySahena = () => {
     const navigate = useNavigate();
     const [trips, setTrips] = useState([]);
     const [searchLorry, setSearchLorry] = useState("");
@@ -15,7 +15,7 @@ const TripHistory = () => {
     const fetchTrips = async () => {
         try {
             setHasSearched(true); // ইউজার সার্চ বাটনে ক্লিক করেছেন
-            let url = `http://localhost:3000/trips`;
+            let url = `http://localhost:3000/trips-sahena`;
             
             // যদি নির্দিষ্ট তারিখ থাকে তবে সেটা পাঠানো হবে
             if (searchDate) {
@@ -206,4 +206,4 @@ const TripHistory = () => {
     );
 };
 
-export default TripHistory;
+export default TripHistorySahena;

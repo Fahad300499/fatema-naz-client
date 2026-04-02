@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import { Calendar, FileText, ChevronLeft, Clock, AlertCircle, CheckCircle2, ArrowLeft, Loader2 } from 'lucide-react';
 import axios from 'axios';
 
-const TotalLory = () => {
+const TotalLorySahena = () => {
     const navigate = useNavigate();
     const [selectedLory, setSelectedLory] = useState(null);
     const [recentTrips, setRecentTrips] = useState([]);
@@ -11,9 +11,9 @@ const TotalLory = () => {
     const [loading, setLoading] = useState(false);
 
     const loryList = [
-        "41-0545", "41-0546", "41-0752", "41-0754",
-        "41-0763", "41-0764", "41-0298", "41-0299",
-        "41-0639", "44-0640", "44-0783"
+        "41-0205", "41-0291", "41-0550", "41-0396",
+        "41-0445", "41-0446", "41-0578", "41-0577",
+        "41-0573", "41-0015", "41-0702", "41-0703", "41-0704", "41-0705", "41-0225", "44-0783", "44-0869", 
     ];
 
     // এক্সপায়ারি স্ট্যাটাস চেক করার ফাংশন
@@ -35,11 +35,11 @@ const TotalLory = () => {
         setLoading(true);
         try {
             // ১. ট্রিপ ডাটা ফেচ করা
-            const tripRes = await axios.get(`http://localhost:3000/trips/${number}`);
+            const tripRes = await axios.get(`http://localhost:3000/trips-sahena/${number}`);
             setRecentTrips(tripRes.data);
 
             // ২. লরী ডকুমেন্টস ডাটা ফেচ করা (যাতে আপডেট হওয়া ডাটা দেখা যায়)
-            const docRes = await axios.get(`http://localhost:3000/lory-details/${number}`);
+            const docRes = await axios.get(`http://localhost:3000/lory-details-sahena/${number}`);
             setDocumentData(docRes.data);
         } catch (error) {
             console.error("ডাটা লোড করতে সমস্যা হয়েছে:", error);
@@ -237,4 +237,4 @@ const TotalLory = () => {
     );
 };
 
-export default TotalLory;
+export default TotalLorySahena;

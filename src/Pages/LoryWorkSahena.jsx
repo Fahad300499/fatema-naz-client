@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 import Swal from 'sweetalert2'; 
-import { ArrowLeft, Calendar, User, DollarSign, Settings, AlignLeft, PlusCircle } from 'lucide-react';
+import { ArrowLeft, Calendar, User, DollarSign, Settings, AlignLeft } from 'lucide-react';
 
-const LoryWork = () => {
+const LoryWorkSahena = () => {
     const navigate = useNavigate();
+    
+    // শাহেনা লরী লিস্ট
     const [loryList, setLoryList] = useState([
-        "41-0545", "41-0546", "41-0752", "41-0754",
-        "41-0763", "41-0764", "41-0358", "44-0783"
+        "41-0298", "41-0299", "41-0396", "41-0445", "41-0446",
+        "41-0577", "41-0573", "41-0015", "41-0639", "41-0640",
     ]);
 
     const workOptions = [
@@ -18,8 +20,8 @@ const LoryWork = () => {
 
     const [formData, setFormData] = useState({
         lorryNo: '',
-        customLorryNo: '', // নতুন লরী নম্বর লেখার জন্য
-        isCustomLorry: false, // কাস্টম ইনপুট দেখানোর সুইচ
+        customLorryNo: '', // নতুন লরীর জন্য
+        isCustomLorry: false, 
         date: new Date().toISOString().split('T')[0],
         workDetails: '', 
         additionalInfo: '', 
@@ -29,12 +31,12 @@ const LoryWork = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
-        // যদি কাস্টম লরী মোড অন থাকে, তবে customLorryNo ব্যবহার হবে
+
+        // কাস্টম নাকি ড্রপডাউন থেকে নম্বর নেওয়া হবে
         const finalLorryNo = formData.isCustomLorry ? formData.customLorryNo : formData.lorryNo;
 
         if (!finalLorryNo) {
-            Swal.fire('ভুল!', 'লরী নম্বর প্রদান করুন', 'warning');
+            Swal.fire('ভুল!', 'দয়া করে লরী নম্বর সিলেক্ট করুন বা লিখুন', 'warning');
             return;
         }
 
@@ -48,7 +50,8 @@ const LoryWork = () => {
         };
 
         try {
-            const response = await fetch('http://localhost:3000/save-lory-work', {
+            // শাহেনার জন্য আপনার সার্ভার এন্ডপয়েন্ট অনুযায়ী URL পরিবর্তন করতে পারেন (যদি আলাদা থাকে)
+            const response = await fetch('http://localhost:3000/save-lory-work-sahena', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(finalData)
@@ -59,16 +62,18 @@ const LoryWork = () => {
                 Swal.fire({
                     icon: 'success',
                     title: 'সফল!',
-                    text: 'লরীর কাজের বিবরণ সেভ হয়েছে',
+                    text: 'শাহেনা লরীর কাজের বিবরণ সেভ হয়েছে',
                     timer: 2000,
                     showConfirmButton: false,
+                    borderRadius: '20px'
                 });
                 
-                // যদি নতুন লরী হয়, তবে সেটিকে লিস্টে যোগ করে দেওয়া (ঐচ্ছিক)
+                // নতুন লরী হলে লিস্টে সাময়িকভাবে যোগ করা
                 if (formData.isCustomLorry && !loryList.includes(formData.customLorryNo)) {
                     setLoryList([...loryList, formData.customLorryNo]);
                 }
 
+                // ফর্ম রিসেট
                 setFormData({ 
                     lorryNo: '', 
                     customLorryNo: '',
@@ -81,7 +86,11 @@ const LoryWork = () => {
                 });
             }
         } catch (error) {
-            Swal.fire({ icon: 'error', title: 'ভুল!', text: 'সার্ভারে কানেক্ট হতে পারছে না।' });
+            Swal.fire({
+                icon: 'error',
+                title: 'ভুল!',
+                text: 'সার্ভারে কানেক্ট হতে পারছে না।',
+            });
         }
     };
 
@@ -98,18 +107,19 @@ const LoryWork = () => {
                 </button>
 
                 <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-blue-900/5 border border-white overflow-hidden">
+                    
                     <div className="bg-gradient-to-r from-blue-700 to-indigo-800 p-8 text-white">
-                        <h2 className="text-3xl font-black tracking-tight mb-2">লরী মেইনটেন্যান্স এন্ট্রি</h2>
-                        <p className="text-blue-100 opacity-80 font-medium text-sm uppercase tracking-widest">Lory Work & Costing Database</p>
+                        <h2 className="text-3xl font-black tracking-tight mb-2">শাহেনা লরী মেইনটেন্যান্স</h2>
+                        <p className="text-blue-100 opacity-80 font-medium text-sm uppercase tracking-widest">Sahena Lory Work Database</p>
                     </div>
 
                     <form onSubmit={handleSubmit} className="p-8 md:p-12 space-y-6">
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* লরী সিলেকশন / ইনপুট */}
+                            {/* লরী নম্বর এন্ট্রি */}
                             <div className="form-control">
                                 <label className="label text-slate-700 font-bold text-sm">
-                                    {formData.isCustomLorry ? "নতুন লরী নম্বর লিখুন" : "লরী নম্বর সিলেক্ট করুন"}
+                                    {formData.isCustomLorry ? "নতুন লরী নম্বর লিখুন" : "লরী নম্বর"}
                                 </label>
                                 <div className="relative">
                                     {!formData.isCustomLorry ? (
@@ -118,7 +128,7 @@ const LoryWork = () => {
                                             className="select select-bordered w-full pl-11 bg-slate-50 border-slate-200 focus:outline-blue-500 rounded-2xl h-14"
                                             value={formData.lorryNo}
                                             onChange={(e) => {
-                                                if (e.target.value === "ADD_NEW") {
+                                                if (e.target.value === "ADD_NEW_SAHENA") {
                                                     setFormData({...formData, isCustomLorry: true, lorryNo: ''});
                                                 } else {
                                                     setFormData({...formData, lorryNo: e.target.value});
@@ -127,22 +137,22 @@ const LoryWork = () => {
                                         >
                                             <option value="">সিলেক্ট করুন</option>
                                             {loryList.map(lory => <option key={lory} value={lory}>{lory}</option>)}
-                                            <option value="ADD_NEW" className="text-blue-600 font-bold">+ নতুন লরী যোগ করুন</option>
+                                            <option value="ADD_NEW_SAHENA" className="text-blue-600 font-bold">+ নতুন লরী এড করুন</option>
                                         </select>
                                     ) : (
                                         <div className="flex gap-2">
                                             <input 
                                                 type="text"
                                                 required
-                                                placeholder="যেমন: 41-9999"
-                                                className="input input-bordered w-full pl-11 bg-blue-50 border-blue-200 focus:outline-blue-500 rounded-2xl h-14"
+                                                placeholder="যেমন: 41-XXXX"
+                                                className="input input-bordered w-full pl-11 bg-blue-50 border-blue-200 focus:outline-blue-500 rounded-2xl h-14 font-bold"
                                                 value={formData.customLorryNo}
                                                 onChange={(e) => setFormData({...formData, customLorryNo: e.target.value})}
                                             />
                                             <button 
                                                 type="button"
                                                 onClick={() => setFormData({...formData, isCustomLorry: false, customLorryNo: ''})}
-                                                className="btn btn-ghost text-xs text-red-500"
+                                                className="btn btn-ghost text-red-500 text-xs"
                                             >বাতিল</button>
                                         </div>
                                     )}
@@ -166,13 +176,14 @@ const LoryWork = () => {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* ড্রাইভার */}
                             <div className="form-control">
                                 <label className="label text-slate-700 font-bold text-sm">ড্রাইভারের নাম</label>
                                 <div className="relative">
                                     <input 
                                         type="text" 
                                         className="input input-bordered w-full pl-11 bg-slate-50 border-slate-200 focus:outline-blue-500 rounded-2xl h-14" 
-                                        placeholder="ড্রাইভারের নাম লিখুন"
+                                        placeholder="ড্রাইভারের নাম"
                                         value={formData.driverName}
                                         onChange={(e) => setFormData({...formData, driverName: e.target.value})}
                                     />
@@ -180,6 +191,7 @@ const LoryWork = () => {
                                 </div>
                             </div>
 
+                            {/* খরচ */}
                             <div className="form-control">
                                 <label className="label text-slate-700 font-bold text-sm">মোট খরচ (টাকা)</label>
                                 <div className="relative">
@@ -195,6 +207,7 @@ const LoryWork = () => {
                             </div>
                         </div>
 
+                        {/* কাজের ধরন */}
                         <div className="form-control">
                             <label className="label text-slate-700 font-bold text-sm">কাজের ধরন</label>
                             <div className="relative">
@@ -213,6 +226,7 @@ const LoryWork = () => {
                             </div>
                         </div>
 
+                        {/* বিস্তারিত বিবরণ */}
                         <div className="form-control">
                             <label className="label text-slate-700 font-bold text-sm">কাজের বিস্তারিত বিবরণ (ঐচ্ছিক)</label>
                             <div className="relative">
@@ -227,7 +241,7 @@ const LoryWork = () => {
                         </div>
 
                         <button type="submit" className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-lg hover:bg-blue-700 shadow-xl hover:shadow-blue-200 transition-all duration-300 mt-4 active:scale-[0.98]">
-                            ডাটা সেভ করুন
+                            ডাটা সেভ করুন (শাহেনা)
                         </button>
                     </form>
                 </div>
@@ -236,4 +250,4 @@ const LoryWork = () => {
     );
 };
 
-export default LoryWork;
+export default LoryWorkSahena;

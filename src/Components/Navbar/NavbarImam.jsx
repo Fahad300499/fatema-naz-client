@@ -2,7 +2,7 @@ import React, { useContext } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { AuthContext } from '../../Pages/Providers/AuthContext';
 
-const Navbar = () => {
+const NavbarImam = () => {
   const location = useLocation();
   const navigate = useNavigate();
   
@@ -27,7 +27,6 @@ const Navbar = () => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
           ফিরে যান
-          
         </button>
       </div>
 
@@ -35,7 +34,7 @@ const Navbar = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 justify-items-center">
         
         {/* কার্ড ১: Per Trip Costing Amount */}
-        <Link to="/per-trip-cost" className="w-full">
+        <Link to="/per-trip-cost-imam" className="w-full">
           <div className={`group relative p-6 rounded-3xl transition-all duration-300 border-2 overflow-hidden h-full
             ${isActive('/per-trip-cost') ? 'border-orange-500 bg-orange-50 shadow-xl scale-105' : 'border-gray-200 bg-white hover:border-orange-200 hover:shadow-2xl hover:-translate-y-1'}`}>
             <div className="absolute -right-4 -bottom-4 h-20 w-20 bg-orange-500/10 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
@@ -52,7 +51,7 @@ const Navbar = () => {
 
         {/* কার্ড ২: Trip History (শুধু অ্যাডমিন) */}
         {isAdmin && (
-          <Link to="/trip-history" className="w-full">
+          <Link to="/trip-history-imam" className="w-full">
             <div className={`group relative p-6 rounded-3xl transition-all duration-300 border-2 overflow-hidden h-full
               ${isActive('/trip-history') ? 'border-blue-600 bg-blue-50 shadow-xl scale-105' : 'border-gray-200 bg-white hover:border-blue-200 hover:shadow-2xl hover:-translate-y-1'}`}>
                <div className="absolute -right-4 -bottom-4 h-20 w-20 bg-blue-600/10 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
@@ -70,7 +69,7 @@ const Navbar = () => {
 
         {/* কার্ড ৩: Total Lory Of Fatema Naz (শুধু অ্যাডমিন) */}
         {isAdmin && (
-          <Link to="/fatema-total-lory" className="w-full">
+          <Link to="/imam-total-lory" className="w-full">
             <div className={`group relative p-6 rounded-3xl transition-all duration-300 border-2 overflow-hidden h-full
               ${isActive('/fatema-total-lory') ? 'border-green-600 bg-green-50 shadow-xl scale-105' : 'border-gray-200 bg-white hover:border-green-200 hover:shadow-2xl hover:-translate-y-1'}`}>
                <div className="absolute -right-4 -bottom-4 h-20 w-20 bg-green-500/10 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
@@ -87,7 +86,7 @@ const Navbar = () => {
         )}
 
         {/* কার্ড ৪: Dip Chalan */}
-        <Link to="/dip-chalan" className="w-full">
+        <Link to="/dip-chalan-imam" className="w-full">
           <div className={`group relative p-6 rounded-3xl transition-all duration-300 border-2 overflow-hidden h-full
             ${isActive('/dip-chalan') ? 'border-indigo-600 bg-indigo-50 shadow-xl scale-105' : 'border-gray-200 bg-white hover:border-indigo-200 hover:shadow-2xl hover:-translate-y-1'}`}>
             <div className="flex flex-col items-center text-center relative z-10">
@@ -103,7 +102,7 @@ const Navbar = () => {
 
         {/* কার্ড ৫: Chalan Report (শুধু অ্যাডমিন) */}
         {isAdmin && (
-          <Link to="/chalan-report" className="w-full">
+          <Link to="/chalan-report-imam" className="w-full">
             <div className={`group relative p-6 rounded-3xl transition-all duration-300 border-2 overflow-hidden h-full
               ${isActive('/chalan-report') ? 'border-rose-500 bg-rose-50 shadow-xl scale-105' : 'border-gray-200 bg-white hover:border-rose-200 hover:shadow-2xl hover:-translate-y-1'}`}>
                <div className="flex flex-col items-center text-center relative z-10">
@@ -119,7 +118,7 @@ const Navbar = () => {
         )}
 
         {/* কার্ড ৬: Lory Work */}
-        <Link to="/lory-work" className="w-full">
+        <Link to="/lory-work-imam" className="w-full">
           <div className={`group relative p-6 rounded-3xl transition-all duration-300 border-2 overflow-hidden h-full
             ${isActive('/lory-work') ? 'border-indigo-600 bg-indigo-50 shadow-xl scale-105' : 'border-gray-200 bg-white hover:border-indigo-200 hover:shadow-2xl hover:-translate-y-1'}`}>
             <div className="flex flex-col items-center text-center relative z-10">
@@ -135,7 +134,7 @@ const Navbar = () => {
 
         {/* কার্ড ৭: Lory Work History (শুধু অ্যাডমিন) */}
         {isAdmin && (
-          <Link to="/lory-work-history" className="w-full">
+          <Link to="/lory-work-history-imam" className="w-full">
             <div className={`group relative p-6 rounded-3xl transition-all duration-300 border-2 overflow-hidden h-full
               ${isActive('/lory-work-history') ? 'border-indigo-600 bg-indigo-50 shadow-xl scale-105' : 'border-gray-200 bg-white hover:border-indigo-200 hover:shadow-2xl hover:-translate-y-1'}`}>
                <div className="flex flex-col items-center text-center relative z-10">
@@ -155,4 +154,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar;
+export default NavbarImam;

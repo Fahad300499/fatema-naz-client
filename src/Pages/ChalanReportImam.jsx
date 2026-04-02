@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router';
 
-const ChalanReport = () => {
+const ChalanReportImam = () => {
     const navigate = useNavigate();
     const [searchDate, setSearchDate] = useState(new Date().toISOString().split('T')[0]);
     const [reportData, setReportData] = useState(null);
@@ -11,7 +11,7 @@ const ChalanReport = () => {
     const fetchReport = async () => {
         setLoading(true);
         try {
-            const response = await axios.get(`http://localhost:3000/chalans/${searchDate}`);
+            const response = await axios.get(`http://localhost:3000/chalans-imam/${searchDate}`);
             setReportData(response.data);
         } catch (error) {
             console.error("রিপোর্ট আনতে সমস্যা হয়েছে", error);
@@ -140,4 +140,4 @@ const ChalanReport = () => {
     );
 };
 
-export default ChalanReport;
+export default ChalanReportImam;

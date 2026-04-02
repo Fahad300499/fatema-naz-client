@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router'; 
 import { ArrowLeft, RefreshCw, Search, Truck, Info } from 'lucide-react'; 
 
-const LoryWorkHistory = () => {
+const LoryWorkHistoryImam = () => {
     const navigate = useNavigate();
     const [allHistory, setAllHistory] = useState([]); 
     const [filteredHistory, setFilteredHistory] = useState([]); 
@@ -12,7 +12,7 @@ const LoryWorkHistory = () => {
     const fetchAllHistory = async () => {
         setLoading(true);
         try {
-            const response = await fetch('http://localhost:3000/all-lory-works'); 
+            const response = await fetch('http://localhost:3000/all-lory-works-imam'); 
             const data = await response.json();
             setAllHistory(data);
             setFilteredHistory(data);
@@ -33,7 +33,7 @@ const LoryWorkHistory = () => {
     const confirmDelete = window.confirm("আপনি কি এই রেকর্ডটি চিরতরে মুছে ফেলতে চান?");
     if (confirmDelete) {
         try {
-            const response = await fetch(`http://localhost:3000/delete-lory-work/${id}`, {
+            const response = await fetch(`http://localhost:3000/delete-lory-work-imam/${id}`, {
                 method: 'DELETE',
             });
 
@@ -204,4 +204,4 @@ const LoryWorkHistory = () => {
     );
 };
 
-export default LoryWorkHistory;
+export default LoryWorkHistoryImam;

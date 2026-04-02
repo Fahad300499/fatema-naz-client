@@ -2,7 +2,7 @@ import React from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router'; 
 
-const PerTripCost = () => {
+const PerTripCostSahena = () => {
     const navigate = useNavigate(); 
 
     // ফর্মের ডিফল্ট ভ্যালু হিসেবে ১২টি খালি রো সেট করা
@@ -76,7 +76,7 @@ const PerTripCost = () => {
         };
 
         try {
-            const response = await fetch('http://localhost:3000/save-trips', {
+            const response = await fetch('http://localhost:3000/save-trips-sahena', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(finalSubmission),
@@ -189,4 +189,4 @@ const PerTripCost = () => {
     );
 };
 
-export default PerTripCost;
+export default PerTripCostSahena;
