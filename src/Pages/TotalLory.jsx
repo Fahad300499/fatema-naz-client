@@ -34,19 +34,13 @@ const TotalLory = () => {
         setSelectedLory(number);
         setLoading(true);
         try {
-<<<<<<< HEAD
             // ১. ট্রিপ ডাটা ফেচ করা
-            const tripRes = await axios.get(`http://localhost:3000/trips/${number}`);
+            const tripRes = await axios.get(`https://api.ashrafulenterprise.com/trips/${number}`);
             setRecentTrips(tripRes.data);
 
             // ২. লরী ডকুমেন্টস ডাটা ফেচ করা (যাতে আপডেট হওয়া ডাটা দেখা যায়)
-            const docRes = await axios.get(`http://localhost:3000/lory-details/${number}`);
+            const docRes = await axios.get(`https://api.ashrafulenterprise.com/lory-details/${number}`);
             setDocumentData(docRes.data);
-=======
-            const res = await fetch(`https://api.ashrafulenterprise.com/trips/${number}`);
-            const data = await res.json();
-            setRecentTrips(data);
->>>>>>> d1e321465b69d96c83cff014cdb899ef5bba616e
         } catch (error) {
             console.error("ডাটা লোড করতে সমস্যা হয়েছে:", error);
             setDocumentData(null); // এরর হলে ডাটা রিসেট

@@ -15,7 +15,7 @@ const ChalanSahena = () => {
         const loadData = async () => {
             setLoading(true);
             try {
-                const response = await axios.get(`http://localhost:3000/chalans-sahena/${chalanDate}`);
+                const response = await axios.get(`https://api.ashrafulenterprise.com/chalans-sahena/${chalanDate}`);
                 setAllChalan(response.data.entries || []);
                 setCompanyName(response.data.companyName || 'মেসার্স ইমাম হোসেন');
             } catch (error) {
@@ -30,7 +30,7 @@ const ChalanSahena = () => {
     // ডাটাবেজে সেভ করার ফাংশন
     const saveToDB = async (updatedEntries) => {
         try {
-            await axios.post('http://localhost:3000/chalans-sahena', {
+            await axios.post('https://api.ashrafulenterprise.com/chalans-sahena', {
                 date: chalanDate,
                 companyName,
                 entries: updatedEntries
