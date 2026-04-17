@@ -7,7 +7,7 @@ const NavbarImam = () => {
   const navigate = useNavigate();
   
   // AuthContext থেকে সরাসরি user এবং dbUser (রোল সহ) নিয়ে আসা হচ্ছে
-  const { user, dbUser } = useContext(AuthContext);
+  const { dbUser } = useContext(AuthContext);
 
   const isActive = (path) => location.pathname === path;
   

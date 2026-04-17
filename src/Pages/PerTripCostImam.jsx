@@ -76,7 +76,7 @@ const PerTripCostImam = () => {
         };
 
         try {
-            const response = await fetch('https://api.ashrafulenterprise.com/save-trips-imam', {
+            const response = await fetch('http://localhost:3000/save-trips-imam', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(finalSubmission),

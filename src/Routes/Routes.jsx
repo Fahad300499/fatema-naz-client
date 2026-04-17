@@ -1,4 +1,4 @@
-
+import React from "react";
 import { createBrowserRouter } from "react-router";
 import MainLayouts from "../Layouts/MainLayouts";
 import Home from "../Components/Home/Home";
@@ -25,12 +25,20 @@ import ChalanImam from "../Pages/ChalanImam";
 import ChalanReportImam from "../Pages/ChalanReportImam";
 import ChalanReportSahena from "../Pages/ChalanReportSahena";
 import LoryWorkImam from "../Pages/LoryWorkImam";
-
 import LoryWorkSahena from "../Pages/LoryWorkSahena";
 import LoryWorkHistoryImam from "../Pages/LoryWorkHistoryImam";
 import LoryWorkHistorySahena from "../Pages/LoryWorkHistorySahena";
 import AdminSecurity from "../Pages/AdminSecurity";
 import UpdateLory from "../Pages/UpdateLory";
+import PerTripCostDiba from "../Pages/PerTripCostDiba";
+import TripHistoryDiba from "../Pages/TripHistoryDiba";
+import DibaDetails from "../Pages/DibaDetails";
+import TotalLoryDiba from "../Pages/TotalLoryDiba";
+import ChalanDiba from "../Pages/ChalanDiba";
+import ChalanReportDiba from "../Pages/ChalanReportDiba";
+import LoryWorkDiba from "../Pages/LoryWorkDiba";
+import LoryWorkHistoryDiba from "../Pages/LoryWorkHistoryDiba";
+
 
 export const router = createBrowserRouter([
   {
@@ -58,6 +66,10 @@ export const router = createBrowserRouter([
           element: <PerTripCostSahena></PerTripCostSahena>
         },
         {
+          path:"/per-trip-cost-diba",
+          element: <PerTripCostDiba></PerTripCostDiba>
+        },
+        {
           path:"/trip-history",
           element:<TripHistory></TripHistory>
         },
@@ -68,6 +80,10 @@ export const router = createBrowserRouter([
         {
           path:"/trip-history-sahena",
           element:<TripHistorySahena></TripHistorySahena>
+        },
+        {
+          path:"/trip-history-diba",
+          element:<TripHistoryDiba></TripHistoryDiba>
         },
         {
           path:"/fatema-naz-details",
@@ -82,6 +98,11 @@ export const router = createBrowserRouter([
           element: <PrivateRoute><SahenaDetails></SahenaDetails></PrivateRoute>
         },
         {
+          path:"/diba-details",
+          element: <PrivateRoute><DibaDetails></DibaDetails></PrivateRoute>
+        },
+   
+        {
           path:"/fatema-total-lory",
           element: <TotalLory></TotalLory>
         },
@@ -93,6 +114,11 @@ export const router = createBrowserRouter([
           path:"/sahena-total-lory",
           element:<TotalLorySahena></TotalLorySahena>
         },
+        {
+          path:"/diba-total-lory",
+          element:<TotalLoryDiba></TotalLoryDiba>
+        },
+   
         {
           path:"/dip-chalan",
           element: <Chalan></Chalan>
@@ -106,6 +132,11 @@ export const router = createBrowserRouter([
           element: <ChalanSahena></ChalanSahena>
         },
         {
+          path:"/dip-chalan-diba",
+          element: <ChalanDiba></ChalanDiba>
+        },
+    
+        {
           path: "/chalan-report",
           element: <ChalanReport></ChalanReport>
         },
@@ -117,6 +148,11 @@ export const router = createBrowserRouter([
           path: "/chalan-report-sahena",
           element: <ChalanReportSahena></ChalanReportSahena>
         },
+        {
+          path: "/chalan-report-diba",
+          element: <ChalanReportDiba></ChalanReportDiba>
+        },
+       
         {
           path:"/lory-work",
           element: <LoryWork></LoryWork>
@@ -130,6 +166,11 @@ export const router = createBrowserRouter([
           element: <LoryWorkSahena></LoryWorkSahena>
         },
         {
+          path:"/lory-work-diba",
+          element: <LoryWorkDiba></LoryWorkDiba>
+        },
+ 
+        {
           path:"/lory-work-history",
           element: <LoryWorkHistory></LoryWorkHistory>
         },
@@ -141,6 +182,11 @@ export const router = createBrowserRouter([
           path:"/lory-work-history-sahena",
           element: <LoryWorkHistorySahena></LoryWorkHistorySahena>
         },
+        {
+          path:"/lory-work-history-diba",
+          element: <LoryWorkHistoryDiba></LoryWorkHistoryDiba>
+        },
+     
         {
           path:"/security-password",
           element: <AdminSecurity></AdminSecurity>

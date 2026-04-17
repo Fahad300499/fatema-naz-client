@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import React from 'react'
+import  { useEffect, useState } from 'react'
 import {
   GoogleAuthProvider,
   getAuth,
@@ -38,7 +39,7 @@ const AuthProvider = ({ children }) => {
   // ইউজার রোল ফেচ করার ফাংশন
   const fetchUserRole = async (email) => {
     try {
-      const res = await fetch(`https://api.ashrafulenterprise.com/user/role/${email}`);
+      const res = await fetch(`http://localhost:3000/user/role/${email}`);
       const data = await res.json();
       setDbUser(data);
     } catch (error) {

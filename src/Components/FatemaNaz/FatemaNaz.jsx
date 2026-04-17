@@ -81,7 +81,7 @@ const FatemaNaz = () => {
     if (password) {
         try {
             // ব্যাকএন্ডে রিকোয়েস্ট পাঠানো
-            const response = await axios.post('https://api.ashrafulenterprise.com/api/verify-master-password', { password });
+            const response = await axios.post('http://localhost:3000/api/verify-master-password', { password });
             
             if (response.data.success) {
                 // সাকসেস হলে সেশন স্টোরেজে সেভ করে রাখা যেতে পারে যাতে ওই সেশনে বারবার না চায়
@@ -233,6 +233,36 @@ const FatemaNaz = () => {
                             </span>
                         </div>
                     </div>
+
+
+
+
+
+{/* কার্ড 3: দিবা এন্টারপ্রাইস */}
+                    <div
+                        onClick={() => handleNavigation('/diba-details')}
+                        className="group relative bg-white rounded-[3rem] p-1.5 shadow-2xl hover:shadow-primary/30 transition-all duration-500 cursor-pointer border border-white"
+                    >
+                        <div className="bg-slate-50 rounded-[2.8rem] p-10 flex flex-col items-center">
+                            <div className="p-7 bg-white rounded-3xl mb-8 group-hover:scale-110 group-hover:-rotate-6 transition-all duration-500 shadow-xl shadow-slate-200">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1" />
+                                </svg>
+                            </div>
+                            <h2 className="text-3xl font-black text-slate-800 mb-4 text-center">মেসার্স দিবা রাত্রি সিএনজি ফিলিং স্টেশন</h2>
+                            <p className="text-slate-500 text-center font-medium mb-8">ট্রিপ ডাটাবেজ, চালার রিপোর্ট এবং বিস্তারিত লরী ওয়ার্ক</p>
+                            <span className="flex items-center gap-2 text-primary font-black text-sm uppercase tracking-widest group-hover:gap-4 transition-all">
+                                প্রবেশ করুন <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
+                            </span>
+                        </div>
+                    </div>
+
+
+
+
+
+
+
                 </div>
             </div>
 

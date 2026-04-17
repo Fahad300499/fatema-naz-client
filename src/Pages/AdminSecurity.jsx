@@ -16,7 +16,7 @@ const AdminSecurity = () => {
         }
 
         try {
-            const response = await axios.post('https://api.ashrafulenterprise.com/api/admin/update-master-password', {
+            const response = await axios.post('http://localhost:3000/api/admin/update-master-password', {
                 newPassword: newMasterPassword,
                 adminEmail: user?.email // আপনার ব্যাকএন্ডে এই ইমেইল দিয়ে চেক করবে
             });
