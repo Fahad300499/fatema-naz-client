@@ -11,7 +11,7 @@ const ChalanReportDiba = () => {
     const fetchReport = async () => {
         setLoading(true);
         try {
-            const response = await axios.get(`https://fatema-naz-server-6.onrender.com/chalans-diba/${searchDate}`);
+            const response = await axios.get(`https://fatema-naz-server-7.onrender.com/chalans-diba/${searchDate}`);
             setReportData(response.data);
         } catch (error) {
             console.error("রিপোর্ট আনতে সমস্যা হয়েছে", error);

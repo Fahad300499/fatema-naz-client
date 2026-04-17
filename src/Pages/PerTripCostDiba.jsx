@@ -76,7 +76,7 @@ const PerTripCostDiba = () => {
         };
 
         try {
-            const response = await fetch('https://fatema-naz-server-6.onrender.com/save-trips-diba', {
+            const response = await fetch('https://fatema-naz-server-7.onrender.com/save-trips-diba', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(finalSubmission),

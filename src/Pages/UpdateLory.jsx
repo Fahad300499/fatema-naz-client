@@ -23,7 +23,7 @@ const UpdateLory = () => {
     useEffect(() => {
         const fetchCurrentData = async () => {
             try {
-                const res = await axios.get(`https://fatema-naz-server-6.onrender.com/lory-details/${id}`);
+                const res = await axios.get(`https://fatema-naz-server-7.onrender.com/lory-details/${id}`);
                 if (res.data) {
                     // ডাটাবেজ থেকে আসা ডাটা থেকে আইডি এবং লরি নং বাদ দিয়ে স্টেট সেট করা
                     const { _id, ...editableData } = res.data;
@@ -47,7 +47,7 @@ const UpdateLory = () => {
         setLoading(true);
         try {
             // ডাটা আপডেট করার সময় শুধু formData পাঠানো হচ্ছে (যেখানে ID নাই)
-            const res = await axios.put(`https://fatema-naz-server-6.onrender.com/edit-lory/${id}`, formData);
+            const res = await axios.put(`https://fatema-naz-server-7.onrender.com/edit-lory/${id}`, formData);
             
             if (res.data.modifiedCount > 0 || res.data.acknowledged) {
                 alert("সফলভাবে আপডেট হয়েছে!");

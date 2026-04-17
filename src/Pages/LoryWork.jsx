@@ -48,7 +48,7 @@ const LoryWork = () => {
         };
 
         try {
-            const response = await fetch('https://fatema-naz-server-6.onrender.com/save-lory-work', {
+            const response = await fetch('https://fatema-naz-server-7.onrender.com/save-lory-work', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(finalData)

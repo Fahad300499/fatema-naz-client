@@ -81,7 +81,7 @@ const FatemaNaz = () => {
     if (password) {
         try {
             // ব্যাকএন্ডে রিকোয়েস্ট পাঠানো
-            const response = await axios.post('https://fatema-naz-server-6.onrender.com/api/verify-master-password', { password });
+            const response = await axios.post('https://fatema-naz-server-7.onrender.com/api/verify-master-password', { password });
             
             if (response.data.success) {
                 // সাকসেস হলে সেশন স্টোরেজে সেভ করে রাখা যেতে পারে যাতে ওই সেশনে বারবার না চায়

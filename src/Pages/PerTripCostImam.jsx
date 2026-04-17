@@ -76,7 +76,7 @@ const PerTripCostImam = () => {
         };
 
         try {
-            const response = await fetch('https://fatema-naz-server-6.onrender.com/save-trips-imam', {
+            const response = await fetch('https://fatema-naz-server-7.onrender.com/save-trips-imam', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(finalSubmission),
