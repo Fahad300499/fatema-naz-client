@@ -11,7 +11,7 @@ const ChalanReportImam = () => {
     const fetchReport = async () => {
         setLoading(true);
         try {
-            const response = await axios.get(`http://localhost:3000/chalans-imam/${searchDate}`);
+            const response = await axios.get(`https://fatema-naz-server-6.onrender.com/chalans-imam/${searchDate}`);
             setReportData(response.data);
         } catch (error) {
             console.error("রিপোর্ট আনতে সমস্যা হয়েছে", error);

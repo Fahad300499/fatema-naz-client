@@ -15,7 +15,7 @@ const ChalanDiba = () => {
         const loadData = async () => {
             setLoading(true);
             try {
-                const response = await axios.get(`http://localhost:3000/chalans-diba/${chalanDate}`);
+                const response = await axios.get(`https://fatema-naz-server-6.onrender.com/chalans-diba/${chalanDate}`);
                 setAllChalan(response.data.entries || []);
                 setCompanyName(response.data.companyName || 'মেসার্স ইমাম হোসেন');
             } catch (error) {
@@ -30,7 +30,7 @@ const ChalanDiba = () => {
     // ডাটাবেজে সেভ করার ফাংশন
     const saveToDB = async (updatedEntries) => {
         try {
-            await axios.post('http://localhost:3000/chalans-diba', {
+            await axios.post('https://fatema-naz-server-6.onrender.com/chalans-diba', {
                 date: chalanDate,
                 companyName,
                 entries: updatedEntries

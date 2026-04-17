@@ -15,7 +15,7 @@ const TripHistoryDiba = () => {
     const fetchTrips = async () => {
         try {
             setHasSearched(true); // ইউজার সার্চ বাটনে ক্লিক করেছেন
-            let url = `http://localhost:3000/trips-diba`;
+            let url = `https://fatema-naz-server-6.onrender.com/trips-diba`;
             
             // যদি নির্দিষ্ট তারিখ থাকে তবে সেটা পাঠানো হবে
             if (searchDate) {
