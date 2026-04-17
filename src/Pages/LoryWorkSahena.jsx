@@ -51,7 +51,7 @@ const LoryWorkSahena = () => {
 
         try {
             // শাহেনার জন্য আপনার সার্ভার এন্ডপয়েন্ট অনুযায়ী URL পরিবর্তন করতে পারেন (যদি আলাদা থাকে)
-            const response = await fetch('https://fatema-naz-server-7.onrender.com/save-lory-work-sahena', {
+            const response = await fetch('http://localhost:3000/save-lory-work-sahena', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(finalData)

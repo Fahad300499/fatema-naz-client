@@ -51,7 +51,7 @@ const LoryWorkDiba = () => {
         };
 
         try {
-            const response = await fetch('https://fatema-naz-server-7.onrender.com/save-lory-work-diba', {
+            const response = await fetch('http://localhost:3000/save-lory-work-diba', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(finalData)

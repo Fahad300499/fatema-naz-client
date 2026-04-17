@@ -28,7 +28,7 @@ const Login = () => {
             // ২. সার্ভারে ডাটা পাঠানো এবং রোল ফেচ করা (প্যারালাল প্রসেস)
             // এর ফলে একটির জন্য অন্যটি আটকে থাকবে না
             try {
-                await fetch('https://fatema-naz-server-7.onrender.com/users', {
+                await fetch('http://localhost:3000/users', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(userData)
