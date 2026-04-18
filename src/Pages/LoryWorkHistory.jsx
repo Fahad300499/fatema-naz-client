@@ -12,7 +12,7 @@ const LoryWorkHistory = () => {
     const fetchAllHistory = async () => {
         setLoading(true);
         try {
-            const response = await fetch('http://localhost:3000/all-lory-works'); 
+            const response = await fetch('https://api.ashrafulenterprise.com/all-lory-works'); 
             const data = await response.json();
             setAllHistory(data);
             setFilteredHistory(data);
@@ -33,7 +33,7 @@ const LoryWorkHistory = () => {
     const confirmDelete = window.confirm("আপনি কি এই রেকর্ডটি চিরতরে মুছে ফেলতে চান?");
     if (confirmDelete) {
         try {
-            const response = await fetch(`http://localhost:3000/delete-lory-work/${id}`, {
+            const response = await fetch(`https://api.ashrafulenterprise.com/delete-lory-work/${id}`, {
                 method: 'DELETE',
             });
 

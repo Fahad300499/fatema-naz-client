@@ -1,5 +1,5 @@
 import React from 'react';
-import Navbar from '../Components/Navbar/Navbar';
+import NavbarDiba from '../Components/Navbar/NavbarDiba';
 
 const DibaDetails = () => {
     return (
@@ -7,7 +7,7 @@ const DibaDetails = () => {
             <div>
                 <h1 className='text-7xl font-bold text-center mt-10 text-orange-600 noto-serif'>মেসার্স দিবা রাত্রি সিএনজি ফিলিং স্টেশন</h1>
             </div>
-            <Navbar></Navbar>
+            <NavbarDiba></NavbarDiba>
         </div>
     );
 };

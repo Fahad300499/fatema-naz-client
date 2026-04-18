@@ -23,7 +23,7 @@ const UpdateLoryDiba = () => {
     useEffect(() => {
         const fetchCurrentData = async () => {
             try {
-                const res = await axios.get(`http://localhost:3000/lory-details-diba/${id}`);
+                const res = await axios.get(`https://api.ashrafulenterprise.com/lory-details-diba/${id}`);
                 if (res.data) {
                     // ডাটাবেজ থেকে আসা ডাটা থেকে আইডি এবং লরি নং বাদ দিয়ে স্টেট সেট করা
                     const { _id, ...editableData } = res.data;
@@ -47,7 +47,7 @@ const UpdateLoryDiba = () => {
         setLoading(true);
         try {
             // ডাটা আপডেট করার সময় শুধু formData পাঠানো হচ্ছে (যেখানে ID নাই)
-            const res = await axios.put(`http://localhost:3000/edit-lory-diba/${id}`, formData);
+            const res = await axios.put(`https://api.ashrafulenterprise.com/edit-lory-diba/${id}`, formData);
             
             if (res.data.modifiedCount > 0 || res.data.acknowledged) {
                 alert("সফলভাবে আপডেট হয়েছে!");

@@ -11,7 +11,7 @@ const ChalanReportSahena = () => {
     const fetchReport = async () => {
         setLoading(true);
         try {
-            const response = await axios.get(`http://localhost:3000/chalans-sahena/${searchDate}`);
+            const response = await axios.get(`https://api.ashrafulenterprise.com/chalans-sahena/${searchDate}`);
             setReportData(response.data);
         } catch (error) {
             console.error("রিপোর্ট আনতে সমস্যা হয়েছে", error);

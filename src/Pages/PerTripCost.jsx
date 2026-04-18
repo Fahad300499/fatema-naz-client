@@ -76,7 +76,7 @@ const PerTripCost = () => {
         };
 
         try {
-            const response = await fetch('http://localhost:3000/save-trips', {
+            const response = await fetch('https://api.ashrafulenterprise.com/save-trips', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(finalSubmission),
