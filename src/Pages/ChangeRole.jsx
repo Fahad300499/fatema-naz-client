@@ -13,7 +13,7 @@ const ChangeRole = () => {
     const fetchUsers = async () => {
         try {
             setLoading(true);
-            const response = await fetch('http://localhost:3000/users');
+            const response = await fetch('https://api.ashrafulenterprise.com/users');
 
             if (!response.ok) {
                 throw new Error('সার্ভার থেকে ডাটা আনতে সমস্যা হয়েছে।');
@@ -46,7 +46,7 @@ const ChangeRole = () => {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    const res = await fetch(`http://localhost:3000/users/role/${user._id}`, {
+                    const res = await fetch(`https://api.ashrafulenterprise.com/users/role/${user._id}`, {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json'
@@ -81,7 +81,7 @@ const ChangeRole = () => {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    const res = await fetch(`http://localhost:3000/users/${id}`, {
+                    const res = await fetch(`https://api.ashrafulenterprise.com/users/${id}`, {
                         method: 'DELETE'
                     });
 
