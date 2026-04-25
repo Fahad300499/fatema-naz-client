@@ -39,6 +39,7 @@ import ChalanDiba from "../Pages/ChalanDiba";
 import ChalanReportDiba from "../Pages/ChalanReportDiba";
 import LoryWorkDiba from "../Pages/LoryWorkDiba";
 import LoryWorkHistoryDiba from "../Pages/LoryWorkHistoryDiba";
+import ChangeRole from "../Pages/ChangeRole";
 
 
 export const router = createBrowserRouter([
@@ -191,6 +192,10 @@ export const router = createBrowserRouter([
         {
           path:"/security-password",
           element: <AdminSecurity></AdminSecurity>
+        },
+         {
+          path:"/change-role",
+          element: <ChangeRole></ChangeRole>
         },
         {
           path:"/edit-lory/:id",

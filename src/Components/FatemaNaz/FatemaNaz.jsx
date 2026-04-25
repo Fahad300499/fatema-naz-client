@@ -81,7 +81,7 @@ const FatemaNaz = () => {
     if (password) {
         try {
             // ব্যাকএন্ডে রিকোয়েস্ট পাঠানো
-            const response = await axios.post('https://api.ashrafulenterprise.com/api/verify-master-password', { password });
+            const response = await axios.post('http://localhost:3000/api/verify-master-password', { password });
             
             if (response.data.success) {
                 // সাকসেস হলে সেশন স্টোরেজে সেভ করে রাখা যেতে পারে যাতে ওই সেশনে বারবার না চায়
@@ -121,6 +121,12 @@ const FatemaNaz = () => {
                         <div>
                             {
                                 dbUser?.role === 'admin' ? <Link className='font-bold text-red-500 ' to="/security-password"> Set Password (For Admin) Page</Link> : ""
+                            }
+                        </div>
+
+                        <div>
+                            {
+                                dbUser?.role === 'admin' ? <Link className='font-bold text-red-500 ' to="/Change-role"> Admin Dashboard</Link> : ""
                             }
                         </div>
 
