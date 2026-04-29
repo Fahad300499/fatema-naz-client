@@ -40,6 +40,26 @@ import ChalanReportDiba from "../Pages/ChalanReportDiba";
 import LoryWorkDiba from "../Pages/LoryWorkDiba";
 import LoryWorkHistoryDiba from "../Pages/LoryWorkHistoryDiba";
 import ChangeRole from "../Pages/ChangeRole";
+import FineReport from "../Pages/FineReport";
+import SecurityReport from "../Pages/SecurityReport";
+import ExtraFineReport from "../Pages/ExtraFineReport";
+import DieselReport from "../Pages/DieselReport";
+import SecondPaymentReport from "../Pages/SecondPaymentReport";
+import FineReportImam from "../Pages/FineReportImam";
+import SecurityReportImam from "../Pages/SecurityReportImam";
+import ExtraFineReportImam from "../Pages/ExtraFineReportImam";
+import DieselReportImam from "../Pages/DieselReportImam";
+import SecondPaymentReportImam from "../Pages/SecondPaymentReportImam";
+import FineReportDiba from "../Pages/FineReportDiba";
+import SecurityReportDiba from "../Pages/SecurityReportDiba";
+import ExtraFineReportDiba from "../Pages/ExtraFineReportDiba";
+import DieselReportDiba from "../Pages/DieselReportDiba";
+import SecondPaymentReportDiba from "../Pages/SecondPaymentReportDiba";
+import FineReportSahena from "../Pages/FineReportSahena";
+import SecurityReportSahena from "../Pages/SecurityReportSahena";
+import ExtraFineReportSahena from "../Pages/ExtraFineReportSahena";
+import SecondPaymentReportSahena from "../Pages/SecondPaymentReportSahena";
+import DieselReportSahena from "../Pages/DieselReportSahena";
 
 
 export const router = createBrowserRouter([
@@ -200,6 +220,86 @@ export const router = createBrowserRouter([
         {
           path:"/edit-lory/:id",
           element: <UpdateLory></UpdateLory>
+        },
+        {
+          path: "/fine-report",
+          element: <FineReport></FineReport>
+        },
+        {
+          path: "/security-report",
+          element: <SecurityReport></SecurityReport>
+        },
+        {
+          path: "/extra-fine-report",
+          element: <ExtraFineReport></ExtraFineReport>
+        },
+        {
+          path:  "/diesel-report",
+          element: <DieselReport></DieselReport>
+        },
+        {
+          path: "/second-payment-report",
+          element: <SecondPaymentReport></SecondPaymentReport>
+        },
+         {
+          path: "/fine-report-imam",
+          element: <FineReportImam></FineReportImam>
+        },
+        {
+          path: "/security-report-imam",
+          element: <SecurityReportImam></SecurityReportImam>
+        },
+        {
+          path: "/extra-fine-report-imam",
+          element: <ExtraFineReportImam></ExtraFineReportImam>
+        },
+        {
+          path:  "/diesel-report-imam",
+          element: <DieselReportImam></DieselReportImam>
+        },
+        {
+          path: "/second-payment-report-imam",
+          element: <SecondPaymentReportImam></SecondPaymentReportImam>
+        },
+        {
+          path: "/fine-report-diba",
+          element: <FineReportDiba></FineReportDiba>
+        },
+        {
+          path: "/security-report-diba",
+          element: <SecurityReportDiba></SecurityReportDiba>
+        },
+        {
+          path: "/extra-fine-report-diba",
+          element: <ExtraFineReportDiba></ExtraFineReportDiba>
+        },
+        {
+          path:  "/diesel-report-diba",
+          element: <DieselReportDiba></DieselReportDiba>
+        },
+        {
+          path: "/second-payment-report-diba",
+          element: <SecondPaymentReportDiba></SecondPaymentReportDiba>
+        },
+        {
+          path: "/fine-report-sahena",
+          element: <FineReportSahena></FineReportSahena>
+        },
+        {
+          path: "/security-report-sahena",
+          element: <SecurityReportSahena></SecurityReportSahena>
+        },
+        {
+          path: "/extra-fine-report-sahena",
+          element: <ExtraFineReportSahena></ExtraFineReportSahena>
+        },
+        {
+          path:  "/diesel-report-sahena",
+          element:<DieselReportSahena></DieselReportSahena>
+        },
+        {
+          path: "/second-payment-report-sahena",
+          element: <SecondPaymentReportSahena></SecondPaymentReportSahena>
         },
     ]
   },

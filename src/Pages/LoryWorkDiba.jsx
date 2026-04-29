@@ -237,7 +237,7 @@ const LoryWorkDiba = () => {
                         </div>
 
                         <button type="submit" className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-lg hover:bg-blue-700 shadow-xl hover:shadow-blue-200 transition-all duration-300 mt-4 active:scale-[0.98]">
-                            ডাটা সেভ করুন (ইমাম)
+                            ডাটা সেভ করুন
                         </button>
                     </form>
                 </div>

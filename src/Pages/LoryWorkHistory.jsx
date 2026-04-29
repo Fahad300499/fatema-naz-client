@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router'; 
-import { ArrowLeft, RefreshCw, Search, Truck, Info } from 'lucide-react'; 
+import { ArrowLeft, RefreshCw, Search, Truck, Info, Calendar } from 'lucide-react'; 
 
 const LoryWorkHistory = () => {
     const navigate = useNavigate();
     const [allHistory, setAllHistory] = useState([]); 
     const [filteredHistory, setFilteredHistory] = useState([]); 
     const [loading, setLoading] = useState(true);
-    const [searchTerm, setSearchTerm] = useState('');
+
+    // --- আলাদা আলাদা সার্চ স্টেট ---
+    const [searchLorry, setSearchLorry] = useState('');
+    const [searchDriver, setSearchDriver] = useState('');
+    const [searchWork, setSearchWork] = useState('');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
 
     const fetchAllHistory = async () => {
         setLoading(true);
@@ -23,48 +29,60 @@ const LoryWorkHistory = () => {
         }
     };
 
-    // --- ক্লিক করলে ডিলিট করার ফাংশন ---
-  const handleRowClick = async (id) => {
-    if (!id) {
-        alert("এই রেকর্ডের কোনো আইডি পাওয়া যায়নি!");
-        return;
-    }
-
-    const confirmDelete = window.confirm("আপনি কি এই রেকর্ডটি চিরতরে মুছে ফেলতে চান?");
-    if (confirmDelete) {
-        try {
-            const response = await fetch(`https://api.ashrafulenterprise.com/delete-lory-work/${id}`, {
-                method: 'DELETE',
-            });
-
-            const data = await response.json();
-
-            if (response.ok && data.success) {
-                // স্টেট আপডেট করুন
-                setAllHistory(prev => prev.filter(item => item._id !== id));
-                alert("রেকর্ডটি সফলভাবে মুছে ফেলা হয়েছে।");
-            } else {
-                alert(data.message || "বাদ দিতে সমস্যা হয়েছে।");
-            }
-        } catch (error) {
-            console.error("Error:", error);
-            alert("সার্ভারের সাথে যোগাযোগ করা সম্ভব হচ্ছে না।");
+    const handleRowClick = async (id) => {
+        if (!id) {
+            alert("এই রেকর্ডের কোনো আইডি পাওয়া যায়নি!");
+            return;
         }
-    }
-};
+        const confirmDelete = window.confirm("আপনি কি এই রেকর্ডটি চিরতরে মুছে ফেলতে চান?");
+        if (confirmDelete) {
+            try {
+                const response = await fetch(`https://api.ashrafulenterprise.com/delete-lory-work/${id}`, {
+                    method: 'DELETE',
+                });
+                const data = await response.json();
+                if (response.ok && data.success) {
+                    setAllHistory(prev => prev.filter(item => item._id !== id));
+                    alert("রেকর্ডটি সফলভাবে মুছে ফেলা হয়েছে।");
+                } else {
+                    alert(data.message || "বাদ দিতে সমস্যা হয়েছে।");
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("সার্ভারের সাথে যোগাযোগ করা সম্ভব হচ্ছে না।");
+            }
+        }
+    };
 
     useEffect(() => {
         fetchAllHistory();
     }, []);
 
+    // --- মাল্টিপল সার্চ ফিল্টারিং লজিক ---
     useEffect(() => {
-        const results = allHistory.filter(item =>
-            item.lorryNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (item.driverName && item.driverName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-            (item.workDetails && item.workDetails.toLowerCase().includes(searchTerm.toLowerCase()))
-        );
+        const results = allHistory.filter(item => {
+            const itemDate = new Date(item.date);
+            const sDate = startDate ? new Date(startDate) : null;
+            const eDate = endDate ? new Date(endDate) : null;
+
+            const matchesLorry = item.lorryNo.toLowerCase().includes(searchLorry.toLowerCase());
+            const matchesDriver = (item.driverName || '').toLowerCase().includes(searchDriver.toLowerCase());
+            const matchesWork = (item.workDetails || '').toLowerCase().includes(searchWork.toLowerCase());
+            
+            // তারিখের রেঞ্জ চেক
+            let matchesDate = true;
+            if (sDate && eDate) {
+                matchesDate = itemDate >= sDate && itemDate <= eDate;
+            } else if (sDate) {
+                matchesDate = itemDate >= sDate;
+            } else if (eDate) {
+                matchesDate = itemDate <= eDate;
+            }
+
+            return matchesLorry && matchesDriver && matchesWork && matchesDate;
+        });
         setFilteredHistory(results);
-    }, [searchTerm, allHistory]);
+    }, [searchLorry, searchDriver, searchWork, startDate, endDate, allHistory]);
 
     const totalCost = filteredHistory.reduce((sum, item) => sum + Number(item.cost || 0), 0);
 
@@ -92,7 +110,7 @@ const LoryWorkHistory = () => {
                 </div>
 
                 {/* --- Header Section --- */}
-                <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-8 rounded-[2.5rem] shadow-xl mb-10 text-white relative overflow-hidden">
+                <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-8 rounded-[2.5rem] shadow-xl mb-8 text-white relative overflow-hidden">
                     <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
                         <div>
                             <h2 className="text-3xl md:text-4xl font-black tracking-tight flex items-center gap-3">
@@ -102,30 +120,78 @@ const LoryWorkHistory = () => {
                             <p className="text-slate-400 mt-2 font-medium uppercase tracking-widest text-xs">Fatema Naz Petroleum Fleet Records</p>
                         </div>
                         <div className="bg-white/10 backdrop-blur-md border border-white/20 p-5 rounded-3xl text-center min-w-[200px]">
-                            <p className="text-blue-200 text-xs font-bold uppercase tracking-widest mb-1">মোট খরচ</p>
+                            <p className="text-blue-200 text-xs font-bold uppercase tracking-widest mb-1">ফিল্টার অনুযায়ী মোট খরচ</p>
                             <p className="text-3xl font-black text-white">{totalCost.toLocaleString()} ৳</p>
                         </div>
                     </div>
                 </div>
 
-                {/* --- Search --- */}
-                <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-200 mb-8">
-                    <div className="relative max-w-md">
-                        <label className="text-xs font-black text-slate-500 uppercase tracking-wider mb-2 block ml-1">দ্রুত সার্চ করুন</label>
-                        <div className="relative">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                {/* --- Multi-Search Section --- */}
+                <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-200 mb-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+                        
+                        {/* তারিখ থেকে */}
+                        <div className="form-control">
+                            <label className="text-[10px] font-black text-slate-400 uppercase mb-2 ml-1">শুরু তারিখ</label>
                             <input 
-                                type="text" 
-                                placeholder="লরী নম্বর, ড্রাইভার বা কাজের ধরন..." 
-                                className="input input-bordered w-full pl-12 h-14 bg-slate-50 border-slate-200 focus:outline-blue-500 rounded-2xl font-medium"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
+                                type="date" 
+                                className="input input-bordered w-full bg-slate-50 border-slate-200 rounded-xl font-medium text-sm focus:ring-2 focus:ring-blue-500"
+                                value={startDate}
+                                onChange={(e) => setStartDate(e.target.value)}
                             />
                         </div>
+
+                        {/* তারিখ পর্যন্ত */}
+                        <div className="form-control">
+                            <label className="text-[10px] font-black text-slate-400 uppercase mb-2 ml-1">শেষ তারিখ</label>
+                            <input 
+                                type="date" 
+                                className="input input-bordered w-full bg-slate-50 border-slate-200 rounded-xl font-medium text-sm focus:ring-2 focus:ring-blue-500"
+                                value={endDate}
+                                onChange={(e) => setEndDate(e.target.value)}
+                            />
+                        </div>
+
+                        {/* লরী নম্বর */}
+                        <div className="form-control">
+                            <label className="text-[10px] font-black text-slate-400 uppercase mb-2 ml-1">লরী নম্বর</label>
+                            <input 
+                                type="text" 
+                                placeholder="যেমন: ঢাকা-মেট্রো..."
+                                className="input input-bordered w-full bg-slate-50 border-slate-200 rounded-xl font-medium text-sm focus:ring-2 focus:ring-blue-500"
+                                value={searchLorry}
+                                onChange={(e) => setSearchLorry(e.target.value)}
+                            />
+                        </div>
+
+                        {/* ড্রাইভার নাম */}
+                        <div className="form-control">
+                            <label className="text-[10px] font-black text-slate-400 uppercase mb-2 ml-1">ড্রাইভার</label>
+                            <input 
+                                type="text" 
+                                placeholder="ড্রাইভারের নাম..."
+                                className="input input-bordered w-full bg-slate-50 border-slate-200 rounded-xl font-medium text-sm focus:ring-2 focus:ring-blue-500"
+                                value={searchDriver}
+                                onChange={(e) => setSearchDriver(e.target.value)}
+                            />
+                        </div>
+
+                        {/* কাজের ধরন */}
+                        <div className="form-control">
+                            <label className="text-[10px] font-black text-slate-400 uppercase mb-2 ml-1">কাজের ধরন</label>
+                            <input 
+                                type="text" 
+                                placeholder="যেমন: ইঞ্জিন তেল..."
+                                className="input input-bordered w-full bg-slate-50 border-slate-200 rounded-xl font-medium text-sm focus:ring-2 focus:ring-blue-500"
+                                value={searchWork}
+                                onChange={(e) => setSearchWork(e.target.value)}
+                            />
+                        </div>
+
                     </div>
                 </div>
 
-                {/* --- Table Section --- */}
+                {/* --- Table Section (আগের মতই) --- */}
                 <div className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
                     <div className="overflow-x-auto">
                         {loading ? (
@@ -148,7 +214,7 @@ const LoryWorkHistory = () => {
                                         filteredHistory.map((item, index) => (
                                             <tr 
                                                 key={item._id || index} 
-                                                onClick={() => handleRowClick(item._id)} // এখানে ক্লিক ইভেন্ট দেওয়া হয়েছে
+                                                onClick={() => handleRowClick(item._id)} 
                                                 className="cursor-pointer hover:bg-red-50 transition-colors border-b border-slate-50 group"
                                                 title="বাদ দিতে ক্লিক করুন"
                                             >
@@ -182,7 +248,6 @@ const LoryWorkHistory = () => {
                                                     <span className="text-lg font-black text-slate-900 block mt-1">
                                                         {Number(item.cost).toLocaleString()}
                                                     </span>
-                                                    {/* হোভার করলে ছোট করে 'ডিলিট' লেখা দেখাবে */}
                                                     <span className="text-[10px] text-red-400 font-bold opacity-0 group-hover:opacity-100 transition-opacity uppercase">ক্লিক করলে বাদ হবে</span>
                                                 </td>
                                             </tr>
