@@ -24,7 +24,7 @@ const UpdateLory = () => {
     useEffect(() => {
         const fetchCurrentData = async () => {
             try {
-                const res = await axios.get(`https://api.ashrafulenterprise.com/lory-details/${id}`);
+                const res = await axios.get(`https://api.ashrafulenterprise.com/trips/lory-details/${id}`);
                 if (res.data) {
                     const { _id, loryNumber, ...editableData } = res.data;
                     
@@ -55,7 +55,7 @@ const UpdateLory = () => {
         e.preventDefault();
         setLoading(true);
         try {
-            const res = await axios.put(`https://api.ashrafulenterprise.com/edit-lory/${id}`, formData);
+            const res = await axios.put(`https://api.ashrafulenterprise.com/trips/edit-lory/${id}`, formData);
             
             if (res.data.modifiedCount > 0 || res.data.acknowledged) {
                 Swal.fire({
@@ -98,7 +98,7 @@ const UpdateLory = () => {
                         <FileText className="text-blue-400" size={30} />
                     </div>
                     <div>
-                        <h2 className="text-2xl font-black tracking-tight">ডকুমেন্ট আপডেট ফরম</h2>
+                        <h2 className="text-2xl font-black tracking-tight">Document Update Form</h2>
                         <p className="text-slate-400 text-sm font-bold uppercase tracking-widest mt-1">Lory: {id}</p>
                     </div>
                 </div>
@@ -108,7 +108,7 @@ const UpdateLory = () => {
                     <div className="mb-10 p-6 bg-blue-50 border border-blue-100 rounded-[2rem]">
                         <div className="flex flex-col gap-2">
                             <label className="text-xs font-black text-blue-600 uppercase tracking-wider ml-1 flex items-center gap-2">
-                                <Clock size={14} /> Update Entry Date (আজকের তারিখ)
+                                <Clock size={14} /> Update Entry Date (Todays Date)
                             </label>
                             <div className="relative">
                                 <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-400" size={18} />
@@ -124,7 +124,7 @@ const UpdateLory = () => {
                         </div>
                     </div>
 
-                    <h4 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-6 border-b pb-2">ডকুমেন্ট এক্সপায়ারি তারিখসমূহ</h4>
+                    <h4 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-6 border-b pb-2">Documents Expire Dates</h4>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
                         {Object.keys(formData).map((key) => (
@@ -156,14 +156,14 @@ const UpdateLory = () => {
                             className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg shadow-blue-200 flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-70"
                         >
                             {loading ? <Loader2 className="animate-spin" /> : <Save size={20} />}
-                            আপডেট করুন
+                            Update
                         </button>
                         <button 
                             type="button"
                             onClick={() => navigate(-1)}
                             className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 py-4 rounded-2xl font-black uppercase tracking-widest transition-all"
                         >
-                            বাতিল
+                            Cancel
                         </button>
                     </div>
                 </form>

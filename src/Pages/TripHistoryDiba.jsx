@@ -20,7 +20,7 @@ const TripHistoryDiba = () => {
             if (startDate) params.append("startDate", startDate);
             if (endDate) params.append("endDate", endDate);
 
-            const url = `https://api.ashrafulenterprise.com/trips-diba?${params.toString()}`;
+            const url = `https://api.ashrafulenterprise.com/trips/trips-diba?${params.toString()}`;
             const res = await fetch(url);
             if (!res.ok) throw new Error("Server response error");
             
@@ -161,7 +161,8 @@ const TripHistoryDiba = () => {
                             { name: "জামানত", path: "/security-report-diba", color: "hover:bg-purple-50 text-purple-600 border-purple-200" },
                             { name: "এক্সট্রা জরিমানা", path: "/extra-fine-report-diba", color: "hover:bg-orange-50 text-orange-600 border-orange-200" },
                             { name: "ডিজেল", path: "/diesel-report-diba", color: "hover:bg-blue-50 text-blue-600 border-blue-200" },
-                            { name: "২য় পাওনা", path: "/second-payment-report-diba", color: "hover:bg-teal-50 text-teal-600 border-teal-200" },
+                            { name: "Gross Salary", path: "/gross-sallery-diba", color: "hover:bg-purple-50 text-purple-600 border-purple-200" },
+                            { name: "Net Salary", path: "/net-sallery-diba", color: "hover:bg-teal-50 text-teal-600 border-teal-200" },
                         ].map((item) => (
                             <button 
                                 key={item.name} 

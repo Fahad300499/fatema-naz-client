@@ -1,6 +1,6 @@
 import React from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
-import { Link, useNavigate } from 'react-router'; 
+import { useNavigate } from 'react-router'; 
 
 const PerTripCostImam = () => {
     const navigate = useNavigate(); 
@@ -30,9 +30,8 @@ const PerTripCostImam = () => {
     const { fields } = useFieldArray({ control, name: "rows" });
     const watchRows = watch("rows");
 
-    const calculateRowData = (index) => {
-        const row = watchRows[index];
-        
+    // একটি রো-এর ডাটা প্রসেস করার কমন লজিক
+    const getRowCalculations = (row) => {
         const total = Number(row?.totalAmount) || 0;
         const toll = Number(row?.toll) || 0;
         const p1 = Number(row?.payment1) || 0;
@@ -43,61 +42,68 @@ const PerTripCostImam = () => {
         const dKhoroch = Number(row?.dieselKhoroch) || 0;
         const dRate = Number(row?.dieselRate) || 0;
 
-        // ১. Exact Salary: Total Pay - Toll
         const exactSalary = total - toll;
-
-        // ২. Second Payment: Total Payment - (First Pay + Fine + Extra Fine + Surety)
         const payment2 = total - (p1 + fine + extraFine + sc);
-        
         const dieselBaki = dPabe - dKhoroch;
         const dieselBabodPabe = dieselBaki * dRate;
-        
-        // ৩. Diesel & Main Salary: Exact Salary + Diesel Rate (৳)
         const dieselAndMainSalary = exactSalary + dieselBabodPabe;
-
-        // ৪. Driver Total Receive: Second Payment + Diesel Rate (৳)
         const driverTotalReceive = payment2 + dieselBabodPabe;
 
         return { exactSalary, payment2, dieselBaki, dieselBabodPabe, dieselAndMainSalary, driverTotalReceive };
     };
 
     const onSubmit = async (data) => {
-        const filledRows = data.rows
-            .filter(row => row.lorryNo.trim() !== "" || row.driverName.trim() !== "")
-            .map((row, index) => {
-                const calcs = calculateRowData(index);
-                return {
-                    ...row,
-                    exactSalary: calcs.exactSalary,
-                    payment2: calcs.payment2,
-                    dieselBaki: calcs.dieselBaki,
-                    dieselBabodPabe: calcs.dieselBabodPabe,
-                    dieselAndMainSalary: calcs.dieselAndMainSalary,
-                    driverTotalReceive: calcs.driverTotalReceive
-                };
-            });
+        // ১. ডাটা আছে এমন রো গুলো ফিল্টার করা
+        const filledRows = data.rows.filter(row => row.lorryNo.trim() !== "" || row.driverName.trim() !== "");
 
         if (filledRows.length === 0) {
             alert("⚠️ কোনো গাড়ির তথ্য ইনপুট দেওয়া হয়নি!");
             return;
         }
 
+        // ২. ডুপ্লিকেট চেক (Lorry No এবং Driver Name এর জন্য)
+        const lorryNos = filledRows.map(r => r.lorryNo.trim().toLowerCase());
+        const driverNames = filledRows.map(r => r.driverName.trim().toLowerCase());
+
+        const hasDuplicateLorry = lorryNos.some((val, i) => lorryNos.indexOf(val) !== i);
+        const hasDuplicateDriver = driverNames.some((val, i) => driverNames.indexOf(val) !== i);
+
+        if (hasDuplicateLorry) {
+            alert("❌ ভুল: একই লরি নম্বর (Lorry No) একাধিক রো-তে ব্যবহার করা হয়েছে!");
+            return;
+        }
+        if (hasDuplicateDriver) {
+            alert("❌ ভুল: একই ড্রাইভারের নাম একাধিক রো-তে ব্যবহার করা হয়েছে!");
+            return;
+        }
+
+        // ৩. ক্যালকুলেটেড ভ্যালুসহ ডাটা প্রস্তুত করা
+        const processedRows = filledRows.map(row => {
+            const calcs = getRowCalculations(row);
+            return {
+                ...row,
+                ...calcs
+            };
+        });
+
         const finalSubmission = {
             ...data,
-            rows: filledRows,
+            rows: processedRows,
             createdAt: new Date() 
         };
 
         try {
-            const response = await fetch('https://api.ashrafulenterprise.com/save-trips-imam', {
+            const response = await fetch('https://api.ashrafulenterprise.com/trips/save-trips-imam', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(finalSubmission),
             });
 
             if (response.ok) {
-                alert(`✅ সফলভাবে ${filledRows.length} টি ডাটা সেভ হয়েছে!`);
+                alert(`✅ সফলভাবে ${processedRows.length} টি ডাটা সেভ হয়েছে!`);
                 reset(); 
+            } else {
+                alert("❌ ডাটা সেভ করা সম্ভব হয়নি!");
             }
         } catch (error) {
             alert("❌ সার্ভার কানেক্ট করা যাচ্ছে না!");
@@ -108,7 +114,7 @@ const PerTripCostImam = () => {
         <div className="p-2 md:p-4 bg-base-200 min-h-screen">
             <form onSubmit={handleSubmit(onSubmit)} className="max-w-[100%] mx-auto bg-white p-4 rounded-xl shadow-xl border border-slate-100">
                 <h1 className='text-center font-bold text-2xl underline mb-6 text-primary uppercase tracking-wider'>
-                    Trip Costing & Diesel Ledger
+                    Trip Costing & Diesel Ledger (Imam)
                 </h1>
                 
                 {/* Top Inputs */}
@@ -153,7 +159,7 @@ const PerTripCostImam = () => {
                         </thead>
                         <tbody>
                             {fields.map((field, index) => {
-                                const { exactSalary, payment2, dieselBaki, dieselBabodPabe, dieselAndMainSalary, driverTotalReceive } = calculateRowData(index);
+                                const calcs = getRowCalculations(watchRows[index]);
                                 return (
                                     <tr key={field.id} className="hover border-b">
                                         <td className="text-slate-400">{index + 1}</td>
@@ -161,19 +167,19 @@ const PerTripCostImam = () => {
                                         <td><input type="text" {...register(`rows.${index}.driverName`)} className="input input-bordered input-xs w-20" /></td>
                                         <td><input type="number" {...register(`rows.${index}.totalAmount`)} className="input input-bordered input-xs w-16" /></td>
                                         <td className="bg-red-50"><input type="number" {...register(`rows.${index}.toll`)} className="input input-bordered input-xs w-12" /></td>
-                                        <td className="font-bold bg-green-50 text-green-700">{exactSalary}</td>
+                                        <td className="font-bold bg-green-50 text-green-700">{calcs.exactSalary}</td>
                                         <td><input type="number" {...register(`rows.${index}.payment1`)} className="input input-bordered input-xs w-14" /></td>
                                         <td><input type="number" {...register(`rows.${index}.fine`)} className="input input-bordered input-xs w-10 text-error" /></td>
                                         <td><input type="number" {...register(`rows.${index}.extraFine`)} className="input input-bordered input-xs w-10 text-error" /></td>
                                         <td><input type="number" {...register(`rows.${index}.security`)} className="input input-bordered input-xs w-14" /></td>
-                                        <td className="font-bold text-blue-700 bg-yellow-50">{payment2}</td>
+                                        <td className="font-bold text-blue-700 bg-yellow-50">{calcs.payment2}</td>
                                         <td className="bg-blue-50"><input type="number" {...register(`rows.${index}.dieselPabe`)} className="input input-bordered input-xs w-12" /></td>
                                         <td className="bg-blue-50"><input type="number" {...register(`rows.${index}.dieselKhoroch`)} className="input input-bordered input-xs w-12" /></td>
-                                        <td className="font-bold bg-green-50">{dieselBaki}</td>
+                                        <td className="font-bold bg-green-50">{calcs.dieselBaki}</td>
                                         <td className="bg-blue-50"><input type="number" {...register(`rows.${index}.dieselRate`)} className="input input-bordered input-xs w-12" /></td>
-                                        <td className="font-bold bg-green-50">{dieselBabodPabe}</td>
-                                        <td className="font-bold bg-purple-50 text-purple-700">{dieselAndMainSalary}</td>
-                                        <td className="font-bold text-md text-primary bg-orange-50">{driverTotalReceive}</td>
+                                        <td className="font-bold bg-green-50">{calcs.dieselBabodPabe}</td>
+                                        <td className="font-bold bg-purple-50 text-purple-700">{calcs.dieselAndMainSalary}</td>
+                                        <td className="font-bold text-md text-primary bg-orange-50">{calcs.driverTotalReceive}</td>
                                     </tr>
                                 );
                             })}

@@ -44,22 +44,26 @@ import FineReport from "../Pages/FineReport";
 import SecurityReport from "../Pages/SecurityReport";
 import ExtraFineReport from "../Pages/ExtraFineReport";
 import DieselReport from "../Pages/DieselReport";
-import SecondPaymentReport from "../Pages/SecondPaymentReport";
 import FineReportImam from "../Pages/FineReportImam";
 import SecurityReportImam from "../Pages/SecurityReportImam";
 import ExtraFineReportImam from "../Pages/ExtraFineReportImam";
 import DieselReportImam from "../Pages/DieselReportImam";
-import SecondPaymentReportImam from "../Pages/SecondPaymentReportImam";
 import FineReportDiba from "../Pages/FineReportDiba";
 import SecurityReportDiba from "../Pages/SecurityReportDiba";
 import ExtraFineReportDiba from "../Pages/ExtraFineReportDiba";
 import DieselReportDiba from "../Pages/DieselReportDiba";
-import SecondPaymentReportDiba from "../Pages/SecondPaymentReportDiba";
 import FineReportSahena from "../Pages/FineReportSahena";
 import SecurityReportSahena from "../Pages/SecurityReportSahena";
 import ExtraFineReportSahena from "../Pages/ExtraFineReportSahena";
-import SecondPaymentReportSahena from "../Pages/SecondPaymentReportSahena";
 import DieselReportSahena from "../Pages/DieselReportSahena";
+import NetSalaryReport from "../Pages/NetSalaryReport";
+import GrossSalaryReport from "../Pages/GrossSalaryReport";
+import GrossSalaryReportDiba from "../Pages/GrossSalaryReportDiba";
+import NetSalaryReportDiba from "../Pages/NetsalaryReportDiba";
+import GrossSalaryReportImam from "../Pages/GrossSalaryReportImam";
+import NetSalaryReportImam from "../Pages/NetSalaryReportImam";
+import GrossSalaryReportSahena from "../Pages/GrossSalaryReportSahena";
+import NetSalaryReportSahena from "../Pages/NetSalaryReportSahena";
 
 
 export const router = createBrowserRouter([
@@ -221,6 +225,19 @@ export const router = createBrowserRouter([
           path:"/edit-lory/:id",
           element: <UpdateLory></UpdateLory>
         },
+
+
+
+
+        
+        {
+          path: "/gross-sallery",
+          element: <GrossSalaryReport></GrossSalaryReport>
+        },
+        {
+          path: "/net-sallery",
+          element: <NetSalaryReport></NetSalaryReport>
+        },
         {
           path: "/fine-report",
           element: <FineReport></FineReport>
@@ -237,9 +254,17 @@ export const router = createBrowserRouter([
           path:  "/diesel-report",
           element: <DieselReport></DieselReport>
         },
+
+
+
+
         {
-          path: "/second-payment-report",
-          element: <SecondPaymentReport></SecondPaymentReport>
+          path: "/gross-sallery-imam",
+          element: <GrossSalaryReportImam></GrossSalaryReportImam>
+        },
+        {
+          path: "/net-sallery-imam",
+          element: <NetSalaryReportImam></NetSalaryReportImam>
         },
          {
           path: "/fine-report-imam",
@@ -257,9 +282,18 @@ export const router = createBrowserRouter([
           path:  "/diesel-report-imam",
           element: <DieselReportImam></DieselReportImam>
         },
+        
+
+
+
+
         {
-          path: "/second-payment-report-imam",
-          element: <SecondPaymentReportImam></SecondPaymentReportImam>
+          path: "/gross-sallery-diba",
+          element: <GrossSalaryReportDiba></GrossSalaryReportDiba>
+        },
+        {
+          path: "/net-sallery-diba",
+          element: <NetSalaryReportDiba></NetSalaryReportDiba>
         },
         {
           path: "/fine-report-diba",
@@ -277,9 +311,19 @@ export const router = createBrowserRouter([
           path:  "/diesel-report-diba",
           element: <DieselReportDiba></DieselReportDiba>
         },
+        
+
+
+
+
+
+         {
+          path: "/gross-sallery-sahena",
+          element: <GrossSalaryReportSahena></GrossSalaryReportSahena>
+        },
         {
-          path: "/second-payment-report-diba",
-          element: <SecondPaymentReportDiba></SecondPaymentReportDiba>
+          path: "/net-sallery-sahena",
+          element: <NetSalaryReportSahena></NetSalaryReportSahena>
         },
         {
           path: "/fine-report-sahena",

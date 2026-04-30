@@ -1,6 +1,6 @@
 import React from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
-import { Link, useNavigate } from 'react-router'; 
+import { useNavigate } from 'react-router'; 
 
 const PerTripCost = () => {
     const navigate = useNavigate(); 
@@ -43,61 +43,75 @@ const PerTripCost = () => {
         const dKhoroch = Number(row?.dieselKhoroch) || 0;
         const dRate = Number(row?.dieselRate) || 0;
 
-        // ১. Exact Salary: Total Pay - Toll
         const exactSalary = total - toll;
-
-        // ২. Second Payment: Total Payment - (First Pay + Fine + Extra Fine + Surety)
         const payment2 = total - (p1 + fine + extraFine + sc);
-        
         const dieselBaki = dPabe - dKhoroch;
         const dieselBabodPabe = dieselBaki * dRate;
-        
-        // ৩. Diesel & Main Salary: Exact Salary + Diesel Rate (৳)
         const dieselAndMainSalary = exactSalary + dieselBabodPabe;
-
-        // ৪. Driver Total Receive: Second Payment + Diesel Rate (৳)
         const driverTotalReceive = payment2 + dieselBabodPabe;
 
         return { exactSalary, payment2, dieselBaki, dieselBabodPabe, dieselAndMainSalary, driverTotalReceive };
     };
 
     const onSubmit = async (data) => {
-        const filledRows = data.rows
-            .filter(row => row.lorryNo.trim() !== "" || row.driverName.trim() !== "")
-            .map((row, index) => {
-                const calcs = calculateRowData(index);
-                return {
-                    ...row,
-                    exactSalary: calcs.exactSalary,
-                    payment2: calcs.payment2,
-                    dieselBaki: calcs.dieselBaki,
-                    dieselBabodPabe: calcs.dieselBabodPabe,
-                    dieselAndMainSalary: calcs.dieselAndMainSalary,
-                    driverTotalReceive: calcs.driverTotalReceive
-                };
-            });
+        // ১. খালি রো বাদ দিয়ে শুধুমাত্র ডাটা আছে এমন রো ফিল্টার করা
+        const filledRows = data.rows.filter(row => row.lorryNo.trim() !== "" || row.driverName.trim() !== "");
 
         if (filledRows.length === 0) {
             alert("⚠️ কোনো গাড়ির তথ্য ইনপুট দেওয়া হয়নি!");
             return;
         }
 
+        // ২. ডুপ্লিকেট চেকিং লজিক (একই ফর্মে দুইবার এন্ট্রি রোধ করতে)
+        const lorryNos = filledRows.map(r => r.lorryNo.trim().toUpperCase());
+        const driverNames = filledRows.map(r => r.driverName.trim().toLowerCase());
+
+        const duplicateLorry = lorryNos.some((val, i) => lorryNos.indexOf(val) !== i);
+        const duplicateDriver = driverNames.some((val, i) => driverNames.indexOf(val) !== i);
+
+        if (duplicateLorry) {
+            alert("❌ ভুল: একই লরি নম্বর (Lorry No) দুইবার ব্যবহার করা হয়েছে!");
+            return;
+        }
+
+        if (duplicateDriver) {
+            alert("❌ ভুল: একই ড্রাইভারের নাম দুইবার ব্যবহার করা হয়েছে!");
+            return;
+        }
+
+        // ৩. ফাইনাল ডাটা প্রসেসিং
+        const processedRows = filledRows.map((row, index) => {
+            const calcs = calculateRowData(index);
+            return {
+                ...row,
+                exactSalary: calcs.exactSalary,
+                payment2: calcs.payment2,
+                dieselBaki: calcs.dieselBaki,
+                dieselBabodPabe: calcs.dieselBabodPabe,
+                dieselAndMainSalary: calcs.dieselAndMainSalary,
+                driverTotalReceive: calcs.driverTotalReceive
+            };
+        });
+
         const finalSubmission = {
             ...data,
-            rows: filledRows,
+            rows: processedRows,
             createdAt: new Date() 
         };
 
+        // ৪. সার্ভারে ডাটা পাঠানো
         try {
-            const response = await fetch('https://api.ashrafulenterprise.com/save-trips', {
+            const response = await fetch('https://api.ashrafulenterprise.com/trips/save-trips', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(finalSubmission),
             });
 
             if (response.ok) {
-                alert(`✅ সফলভাবে ${filledRows.length} টি ডাটা সেভ হয়েছে!`);
+                alert(`✅ সফলভাবে ${processedRows.length} টি ডাটা সেভ হয়েছে!`);
                 reset(); 
+            } else {
+                alert("❌ ডাটা সেভ করতে সমস্যা হয়েছে!");
             }
         } catch (error) {
             alert("❌ সার্ভার কানেক্ট করা যাচ্ছে না!");
@@ -192,27 +206,3 @@ const PerTripCost = () => {
 };
 
 export default PerTripCost;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

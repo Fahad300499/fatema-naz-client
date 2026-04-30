@@ -51,7 +51,7 @@ const LoryWorkImam = () => {
         };
 
         try {
-            const response = await fetch('https://api.ashrafulenterprise.com/save-lory-work-imam', {
+            const response = await fetch('https://api.ashrafulenterprise.com/trips/save-lory-work-imam', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(finalData)

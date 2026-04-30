@@ -20,7 +20,7 @@ const TripHistoryImam = () => {
             if (startDate) params.append("startDate", startDate);
             if (endDate) params.append("endDate", endDate);
 
-            const url = `https://api.ashrafulenterprise.com/trips-imam?${params.toString()}`;
+            const url = `https://api.ashrafulenterprise.com/trips/trips-imam?${params.toString()}`;
             const res = await fetch(url);
             if (!res.ok) throw new Error("Server response error");
             
@@ -161,7 +161,8 @@ const TripHistoryImam = () => {
                             { name: "জামানত", path: "/security-report-imam", color: "hover:bg-purple-50 text-purple-600 border-purple-200" },
                             { name: "এক্সট্রা জরিমানা", path: "/extra-fine-report-imam", color: "hover:bg-orange-50 text-orange-600 border-orange-200" },
                             { name: "ডিজেল", path: "/diesel-report-imam", color: "hover:bg-blue-50 text-blue-600 border-blue-200" },
-                            { name: "২য় পাওনা", path: "/second-payment-report-imam", color: "hover:bg-teal-50 text-teal-600 border-teal-200" },
+                            { name: "Gross Salary", path: "/gross-sallery-imam", color: "hover:bg-purple-50 text-purple-600 border-purple-200" },
+                            { name: "Net Salary", path: "/net-sallery-imam", color: "hover:bg-teal-50 text-teal-600 border-teal-200" },
                         ].map((item) => (
                             <button 
                                 key={item.name} 

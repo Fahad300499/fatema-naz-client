@@ -1,6 +1,6 @@
 import React from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
-import { Link, useNavigate } from 'react-router'; 
+import { useNavigate } from 'react-router'; 
 
 const PerTripCostDiba = () => {
     const navigate = useNavigate(); 
@@ -43,61 +43,76 @@ const PerTripCostDiba = () => {
         const dKhoroch = Number(row?.dieselKhoroch) || 0;
         const dRate = Number(row?.dieselRate) || 0;
 
-        // ১. Exact Salary: Total Pay - Toll
         const exactSalary = total - toll;
-
-        // ২. Second Payment: Total Payment - (First Pay + Fine + Extra Fine + Surety)
         const payment2 = total - (p1 + fine + extraFine + sc);
-        
         const dieselBaki = dPabe - dKhoroch;
         const dieselBabodPabe = dieselBaki * dRate;
-        
-        // ৩. Diesel & Main Salary: Exact Salary + Diesel Rate (৳)
         const dieselAndMainSalary = exactSalary + dieselBabodPabe;
-
-        // ৪. Driver Total Receive: Second Payment + Diesel Rate (৳)
         const driverTotalReceive = payment2 + dieselBabodPabe;
 
         return { exactSalary, payment2, dieselBaki, dieselBabodPabe, dieselAndMainSalary, driverTotalReceive };
     };
 
     const onSubmit = async (data) => {
-        const filledRows = data.rows
-            .filter(row => row.lorryNo.trim() !== "" || row.driverName.trim() !== "")
-            .map((row, index) => {
-                const calcs = calculateRowData(index);
-                return {
-                    ...row,
-                    exactSalary: calcs.exactSalary,
-                    payment2: calcs.payment2,
-                    dieselBaki: calcs.dieselBaki,
-                    dieselBabodPabe: calcs.dieselBabodPabe,
-                    dieselAndMainSalary: calcs.dieselAndMainSalary,
-                    driverTotalReceive: calcs.driverTotalReceive
-                };
-            });
+        // ১. ডাটা আছে এমন রো গুলো ফিল্টার করা
+        const filledRows = data.rows.filter(row => row.lorryNo.trim() !== "" || row.driverName.trim() !== "");
 
         if (filledRows.length === 0) {
             alert("⚠️ কোনো গাড়ির তথ্য ইনপুট দেওয়া হয়নি!");
             return;
         }
 
+        // ২. ডুপ্লিকেট এন্ট্রি চেক করা (Lorry No এবং Driver Name এর জন্য)
+        const lorryNumbers = filledRows.map(r => r.lorryNo.trim().toLowerCase());
+        const driverNames = filledRows.map(r => r.driverName.trim().toLowerCase());
+
+        const hasDuplicateLorry = lorryNumbers.some((val, i) => lorryNumbers.indexOf(val) !== i);
+        const hasDuplicateDriver = driverNames.some((val, i) => driverNames.indexOf(val) !== i);
+
+        if (hasDuplicateLorry) {
+            alert("❌ ভুল: একই লরি নম্বর (Lorry No) একাধিক রো-তে ব্যবহার করা হয়েছে!");
+            return;
+        }
+
+        if (hasDuplicateDriver) {
+            alert("❌ ভুল: একই ড্রাইভারের নাম একাধিক রো-তে ব্যবহার করা হয়েছে!");
+            return;
+        }
+
+        // ৩. ক্যালকুলেটেড ডাটা ম্যাপ করা
+        const processedRows = filledRows.map((row, index) => {
+            // ইনডেক্স খুঁজে বের করা কারণ ফিল্টার করার পর ইনডেক্স বদলে যেতে পারে
+            const originalIndex = data.rows.findIndex(r => r === row);
+            const calcs = calculateRowData(originalIndex);
+            return {
+                ...row,
+                exactSalary: calcs.exactSalary,
+                payment2: calcs.payment2,
+                dieselBaki: calcs.dieselBaki,
+                dieselBabodPabe: calcs.dieselBabodPabe,
+                dieselAndMainSalary: calcs.dieselAndMainSalary,
+                driverTotalReceive: calcs.driverTotalReceive
+            };
+        });
+
         const finalSubmission = {
             ...data,
-            rows: filledRows,
+            rows: processedRows,
             createdAt: new Date() 
         };
 
         try {
-            const response = await fetch('https://api.ashrafulenterprise.com/save-trips-diba', {
+            const response = await fetch('https://api.ashrafulenterprise.com/trips/save-trips-diba', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(finalSubmission),
             });
 
             if (response.ok) {
-                alert(`✅ সফলভাবে ${filledRows.length} টি ডাটা সেভ হয়েছে!`);
+                alert(`✅ সফলভাবে ${processedRows.length} টি ডাটা সেভ হয়েছে!`);
                 reset(); 
+            } else {
+                alert("❌ ডাটা সেভ করা সম্ভব হয়নি!");
             }
         } catch (error) {
             alert("❌ সার্ভার কানেক্ট করা যাচ্ছে না!");
@@ -108,7 +123,7 @@ const PerTripCostDiba = () => {
         <div className="p-2 md:p-4 bg-base-200 min-h-screen">
             <form onSubmit={handleSubmit(onSubmit)} className="max-w-[100%] mx-auto bg-white p-4 rounded-xl shadow-xl border border-slate-100">
                 <h1 className='text-center font-bold text-2xl underline mb-6 text-primary uppercase tracking-wider'>
-                    Trip Costing & Diesel Ledger
+                    Trip Costing & Diesel Ledger (Diba)
                 </h1>
                 
                 {/* Top Inputs */}

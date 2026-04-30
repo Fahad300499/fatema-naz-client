@@ -14,7 +14,7 @@ const TotalLory = () => {
 
     const fetchLories = async () => {
         try {
-            const res = await axios.get('https://api.ashrafulenterprise.com/all-lories');
+            const res = await axios.get('https://api.ashrafulenterprise.com/trips/all-lories');
             setLoryList(res.data.map(item => item.loryNumber));
         } catch (error) {
             console.error("গাড়ির লিস্ট আনতে সমস্যা:", error);
@@ -29,7 +29,7 @@ const TotalLory = () => {
     const handleAddLory = async () => {
         if (!newLoryNumber.trim()) return;
         try {
-            const res = await axios.post('https://api.ashrafulenterprise.com/add-lory', {
+            const res = await axios.post('https://api.ashrafulenterprise.com/trips/add-lory', {
                 loryNumber: newLoryNumber
             });
             if (res.data.success) {
@@ -54,7 +54,7 @@ const TotalLory = () => {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    const res = await axios.delete(`https://api.ashrafulenterprise.com/delete-lory/${encodeURIComponent(number)}`);
+                    const res = await axios.delete(`https://api.ashrafulenterprise.com/trips/delete-lory/${encodeURIComponent(number)}`);
                     if (res.data.success) {
                         Swal.fire('ডিলিট হয়েছে!', 'গাড়িটি মুছে ফেলা হয়েছে।', 'success');
                         setLoryList(prevList => prevList.filter(lory => lory !== number));
@@ -105,7 +105,7 @@ const TotalLory = () => {
         setSelectedLory(number);
         setLoading(true);
         try {
-            const docRes = await axios.get(`https://api.ashrafulenterprise.com/lory-details/${number}`);
+            const docRes = await axios.get(`https://api.ashrafulenterprise.com/trips/lory-details/${number}`);
             setDocumentData(docRes.data);
         } catch (error) {
             console.error("ডকুমেন্ট লোড করতে সমস্যা:", error);
@@ -226,17 +226,17 @@ const TotalLory = () => {
                             <div>
                                 <div className="flex items-center gap-3 mb-1">
                                     <div className="p-2 bg-blue-600 text-white rounded-lg"><FileText size={20} /></div>
-                                    <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tighter">ডকুমেন্টসমূহ</h3>
+                                    <span className='text-xl'>Lorry No:</span> <span className="text-blue-600 font-mono text-xl">{selectedLory}</span>
                                 </div>
                                 {/* এন্ট্রি ডেট এখানে যোগ করা হয়েছে */}
                                 <p className="text-slate-500 text-[11px] font-bold uppercase tracking-widest flex items-center gap-2">
-                                    গাড়ী: <span className="text-blue-600 font-mono text-xs">{selectedLory}</span>
+                                    
                                     {documentData?.createdAt && (
                                         <>
-                                            <span className="text-slate-300">|</span>
+                                            
                                             <span className="flex items-center gap-1">
                                                 <Calendar size={12} className="text-slate-400" />
-                                                এন্ট্রি ডেট: <span className="text-slate-700 font-mono">{documentData.createdAt}</span>
+                                                Entry Date: <span className="text-slate-700 font-mono">{documentData.createdAt}</span>
                                             </span>
                                         </>
                                     )}
@@ -248,7 +248,7 @@ const TotalLory = () => {
                         <div className="flex-1 overflow-y-auto p-6 md:p-8">
                             <div className="mb-4">
                                 <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-6 flex items-center gap-2">
-                                    <div className="w-2 h-2 bg-blue-600 rounded-full"></div>ডকুমেন্ট তালিকা
+                                    <div className="w-2 h-2 bg-blue-600 rounded-full"></div>Documents List
                                 </h4>
                                 {loading ? (
                                     <div className="flex justify-center py-10"><Loader2 className="animate-spin text-blue-600" /></div>
@@ -271,7 +271,7 @@ const TotalLory = () => {
                         </div>
 
                         <div className="p-6 bg-slate-50 border-t flex justify-end">
-                            <button onClick={() => { setSelectedLory(null); setDocumentData(null); }} className="px-8 py-3 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-900 hover:text-white transition-all">বন্ধ করুন</button>
+                            <button onClick={() => { setSelectedLory(null); setDocumentData(null); }} className="px-8 py-3 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-900 hover:text-white transition-all">Close</button>
                         </div>
                     </div>
                 </div>
