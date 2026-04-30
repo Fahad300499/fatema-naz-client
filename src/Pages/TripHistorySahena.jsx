@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+// import autoTable from 'jspdf-autotable';
 
-const TripHistorySahena = () => {
+const TripHistorySahena = () =>  {
     const navigate = useNavigate();
     const [trips, setTrips] = useState([]);
     const [searchLorry, setSearchLorry] = useState("");
