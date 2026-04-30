@@ -14,7 +14,7 @@ const TotalLoryImam = () => {
 
     const fetchLories = async () => {
         try {
-            const res = await axios.get('https://api.ashrafulenterprise.com/trips/all-lories-imam');
+            const res = await axios.get('https://api.ashrafulenterprise.com/all-lories-imam');
             setLoryList(res.data.map(item => item.loryNumber));
         } catch (error) {
             console.error("গাড়ির লিস্ট আনতে সমস্যা:", error);
@@ -29,7 +29,7 @@ const TotalLoryImam = () => {
     const handleAddLory = async () => {
         if (!newLoryNumber.trim()) return;
         try {
-            const res = await axios.post('https://api.ashrafulenterprise.com/trips/add-lory-imam', {
+            const res = await axios.post('https://api.ashrafulenterprise.com/add-lory-imam', {
                 loryNumber: newLoryNumber
             });
             if (res.data.success) {
@@ -54,7 +54,7 @@ const TotalLoryImam = () => {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    const res = await axios.delete(`https://api.ashrafulenterprise.com/trips/delete-lory-imam/${encodeURIComponent(number)}`);
+                    const res = await axios.delete(`https://api.ashrafulenterprise.com/delete-lory-imam/${encodeURIComponent(number)}`);
                     if (res.data.success) {
                         Swal.fire('ডিলিট হয়েছে!', 'গাড়িটি মুছে ফেলা হয়েছে।', 'success');
                         setLoryList(prevList => prevList.filter(lory => lory !== number));
