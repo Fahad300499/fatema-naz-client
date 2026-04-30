@@ -12,7 +12,7 @@ const LoryWorkHistoryImam = () => {
     const fetchAllHistory = async () => {
         setLoading(true);
         try {
-            const response = await fetch('https://api.ashrafulenterprise.com/trips/all-lory-works-imam'); 
+            const response = await fetch('https://api.ashrafulenterprise.com/all-lory-works-imam'); 
             const data = await response.json();
             setAllHistory(data);
             setFilteredHistory(data);
@@ -33,7 +33,7 @@ const LoryWorkHistoryImam = () => {
     const confirmDelete = window.confirm("আপনি কি এই রেকর্ডটি চিরতরে মুছে ফেলতে চান?");
     if (confirmDelete) {
         try {
-            const response = await fetch(`https://api.ashrafulenterprise.com/trips/delete-lory-work-imam/${id}`, {
+            const response = await fetch(`https://api.ashrafulenterprise.com/delete-lory-work-imam/${id}`, {
                 method: 'DELETE',
             });
 

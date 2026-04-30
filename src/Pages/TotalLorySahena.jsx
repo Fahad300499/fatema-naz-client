@@ -105,7 +105,7 @@ const TotalLorySahena = () => {
         setSelectedLory(number);
         setLoading(true);
         try {
-            const docRes = await axios.get(`https://api.ashrafulenterprise.com/trips/lory-details-sahena/${number}`);
+            const docRes = await axios.get(`https://api.ashrafulenterprise.com/lory-details-sahena/${number}`);
             setDocumentData(docRes.data);
         } catch (error) {
             console.error("ডকুমেন্ট লোড করতে সমস্যা:", error);

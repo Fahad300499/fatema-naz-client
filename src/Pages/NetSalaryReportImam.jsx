@@ -22,7 +22,7 @@ const NetSalaryReportImam = () => {
             if (startDate) params.append("startDate", startDate);
             if (endDate) params.append("endDate", endDate);
 
-            const url = `https://api.ashrafulenterprise.com/trips/trips-imam?${params.toString()}`;
+            const url = `https://api.ashrafulenterprise.com/trips-imam?${params.toString()}`;
             const res = await fetch(url);
             if (!res.ok) throw new Error("Server error");
             

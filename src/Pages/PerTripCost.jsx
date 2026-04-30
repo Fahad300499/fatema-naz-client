@@ -101,7 +101,7 @@ const PerTripCost = () => {
 
         // ৪. সার্ভারে ডাটা পাঠানো
         try {
-            const response = await fetch('https://api.ashrafulenterprise.com/trips/save-trips', {
+            const response = await fetch('https://api.ashrafulenterprise.com/save-trips', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(finalSubmission),

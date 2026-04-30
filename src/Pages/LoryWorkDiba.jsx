@@ -51,7 +51,7 @@ const LoryWorkDiba = () => {
         };
 
         try {
-            const response = await fetch('https://api.ashrafulenterprise.com/trips/save-lory-work-diba', {
+            const response = await fetch('https://api.ashrafulenterprise.com/save-lory-work-diba', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(finalData)

@@ -102,7 +102,7 @@ const PerTripCostDiba = () => {
         };
 
         try {
-            const response = await fetch('https://api.ashrafulenterprise.com/trips/save-trips-diba', {
+            const response = await fetch('https://api.ashrafulenterprise.com/save-trips-diba', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(finalSubmission),

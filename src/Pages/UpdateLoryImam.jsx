@@ -23,7 +23,7 @@ const UpdateLoryImam = () => {
     useEffect(() => {
         const fetchCurrentData = async () => {
             try {
-                const res = await axios.get(`https://api.ashrafulenterprise.com/trips/lory-details-imam/${id}`);
+                const res = await axios.get(`https://api.ashrafulenterprise.com/lory-details-imam/${id}`);
                 if (res.data) {
                     // ডাটাবেজ থেকে আসা ডাটা থেকে আইডি এবং লরি নং বাদ দিয়ে স্টেট সেট করা
                     const { _id, ...editableData } = res.data;
@@ -47,7 +47,7 @@ const UpdateLoryImam = () => {
         setLoading(true);
         try {
             // ডাটা আপডেট করার সময় শুধু formData পাঠানো হচ্ছে (যেখানে ID নাই)
-            const res = await axios.put(`https://api.ashrafulenterprise.com/trips/edit-lory-imam/${id}`, formData);
+            const res = await axios.put(`https://api.ashrafulenterprise.com/edit-lory-imam/${id}`, formData);
             
             if (res.data.modifiedCount > 0 || res.data.acknowledged) {
                 alert("সফলভাবে আপডেট হয়েছে!");

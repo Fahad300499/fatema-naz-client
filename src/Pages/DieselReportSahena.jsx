@@ -22,7 +22,7 @@ const DieselReportSahena = () => {
             if (startDate) params.append("startDate", startDate);
             if (endDate) params.append("endDate", endDate);
 
-            const url = `https://api.ashrafulenterprise.com/trips/trips-sahena?${params.toString()}`;
+            const url = `https://api.ashrafulenterprise.com/trips-sahena?${params.toString()}`;
             const res = await fetch(url);
             if (!res.ok) throw new Error("Server error");
             

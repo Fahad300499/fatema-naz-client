@@ -24,7 +24,7 @@ const UpdateLory = () => {
     useEffect(() => {
         const fetchCurrentData = async () => {
             try {
-                const res = await axios.get(`https://api.ashrafulenterprise.com/trips/lory-details/${id}`);
+                const res = await axios.get(`https://api.ashrafulenterprise.com/lory-details/${id}`);
                 if (res.data) {
                     const { _id, loryNumber, ...editableData } = res.data;
                     
@@ -55,7 +55,7 @@ const UpdateLory = () => {
         e.preventDefault();
         setLoading(true);
         try {
-            const res = await axios.put(`https://api.ashrafulenterprise.com/trips/edit-lory/${id}`, formData);
+            const res = await axios.put(`https://api.ashrafulenterprise.com/edit-lory/${id}`, formData);
             
             if (res.data.modifiedCount > 0 || res.data.acknowledged) {
                 Swal.fire({
