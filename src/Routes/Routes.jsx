@@ -341,10 +341,7 @@ export const router = createBrowserRouter([
           path:  "/diesel-report-sahena",
           element:<DieselReportSahena></DieselReportSahena>
         },
-        {
-          path: "/second-payment-report-sahena",
-          element: <SecondPaymentReportSahena></SecondPaymentReportSahena>
-        },
+        
     ]
   },
 ]);
