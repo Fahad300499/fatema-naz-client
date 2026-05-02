@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
+
 const TripHistory = () => {
     const navigate = useNavigate();
     const [trips, setTrips] = useState([]);
