@@ -11,6 +11,7 @@ const ExtraFineReportSahena = () => {
     const [endDate, setEndDate] = useState("");     
     const [hasSearched, setHasSearched] = useState(false);
 
+    // মূল ডিপো কি-ওয়ার্ডস
     const mainDepots = ["parbatipur", "baghabari", "rangpur"];
 
     // Fetch data function
@@ -64,48 +65,80 @@ const ExtraFineReportSahena = () => {
     const downloadPDF = () => {
         const doc = new jsPDF('p', 'pt', 'a4');
         
-        // Header
-        doc.setFontSize(18);
+        // ১. মূল টাইটেল
+        doc.setFontSize(20);
         doc.setTextColor(194, 65, 12); // Orange-700
-        doc.text("Sahena Enterprise - Extra Fine Report", 40, 45);
-        
-        // Date Info
-        doc.setFontSize(10);
-        doc.setTextColor(100);
-        
+        doc.setFont("helvetica", "bold");
+        doc.text("Sahena Enterprise", 40, 40);
 
-        // Main Table
+        // ২. সাব-টাইটেল (ড্রাইভার বা ডেট থাকলে দেখাবে)
+        let infoLine = "";
+        if (searchDriver) {
+            infoLine += `Driver: ${searchDriver}`;
+        }
+        if (startDate && endDate) {
+            if (infoLine) infoLine += " | ";
+            infoLine += `Period: ${startDate} to ${endDate}`;
+        }
+
+        if (infoLine) {
+            doc.setFontSize(10);
+            doc.setTextColor(100);
+            doc.setFont("helvetica", "normal");
+            doc.text(infoLine, 40, 58);
+        }
+
+        // ৩. রিপোর্টের ধরণ
+        doc.setFontSize(12);
+        doc.setTextColor(0);
+        doc.setFont("helvetica", "bold");
+        doc.text("Extra Fine Summary Report", 40, 75);
+
+        // ৪. মূল ডাটা টেবিল
         autoTable(doc, { 
             html: '#extra-fine-table',
-            startY: 80,
+            startY: infoLine ? 90 : 85,
             theme: 'grid',
             headStyles: { fillColor: [194, 65, 12] }, // Orange theme
             styles: { fontSize: 9 },
             margin: { left: 40, right: 40 },
         });
 
+        // ৫. ডিপো ভিত্তিক সামারি
         let finalY = doc.lastAutoTable.finalY + 30;
+        
+        if (finalY > 700) {
+            doc.addPage();
+            finalY = 40;
+        }
 
-        // Summary Table Body
-        const summaryBody = mainDepots.map(depot => {
+        doc.setFontSize(14);
+        doc.setTextColor(0);
+        doc.setFont("helvetica", "bold");
+        doc.text("Summary by Depot", 40, finalY);
+        
+        const summaryData = mainDepots.map(depot => {
             const name = depot.charAt(0).toUpperCase() + depot.slice(1);
             return [name, `${depotSummary[name] || 0} Records`];
         });
-
-        summaryBody.push([
-            { content: 'Total Extra Fine Amount', styles: { fontStyle: 'bold', fillColor: [255, 247, 237] } }, 
-            { content: `${totalExtraFineAmount.toLocaleString()} BDT`, styles: { fontStyle: 'bold', fillColor: [255, 247, 237] } }
-        ]);
-
+        
         autoTable(doc, {
-            head: [['Depot Summary', 'Details']],
-            body: summaryBody,
-            startY: finalY,
+            head: [['Depot Name', 'Total Records']],
+            body: summaryData,
+            startY: finalY + 10,
             margin: { left: 40 },
-            tableWidth: 300,
-            theme: 'grid',
-            headStyles: { fillColor: [154, 52, 18] } // Darker Orange
+            tableWidth: 250,
+            theme: 'striped',
+            headStyles: { fillColor: [51, 65, 85] },
+            styles: { fontSize: 10 }
         });
+
+        // ৬. গ্র্যান্ড টোটাল
+        const totalY = doc.lastAutoTable.finalY + 30;
+        doc.setFontSize(14);
+        doc.setTextColor(194, 65, 12);
+        doc.setFont("helvetica", "bold");
+        doc.text(`Grand Total Extra Fine: ${totalExtraFineAmount.toLocaleString()} TK`, 40, totalY);
 
         doc.save(`Extra_Fine_Report_${new Date().getTime()}.pdf`);
     };
@@ -118,7 +151,7 @@ const ExtraFineReportSahena = () => {
                 <div className="flex justify-between items-center mb-8 no-print">
                     <div className="flex items-center gap-4">
                         <button onClick={() => navigate(-1)} className="btn btn-circle btn-outline btn-sm border-orange-300 text-orange-600 hover:bg-orange-50 transition-all">❮</button>
-                        <h1 className="text-3xl font-extrabold text-orange-700">Extra Fine Report</h1>
+                        <h1 className="text-3xl font-extrabold text-orange-700">Extra Fine Report (Sahena)</h1>
                     </div>
                 </div>
 
@@ -137,19 +170,20 @@ const ExtraFineReportSahena = () => {
                             <label className="label text-xs font-bold text-slate-500 uppercase">Driver Name</label>
                             <input type="text" value={searchDriver} onChange={(e) => setSearchDriver(e.target.value)} className="input input-bordered border-orange-100 focus:border-orange-500" placeholder="Search name..." />
                         </div>
-                        <button onClick={fetchExtraFines} className="btn bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl border-none shadow-lg shadow-orange-100 transition-all">Fetch Data</button>
+                        <button onClick={fetchExtraFines} className="btn bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl border-none shadow-lg shadow-orange-100 transition-all">Search Report</button>
                     </div>
                 </div>
 
+                {/* Report Content */}
                 <div id="report-content">
                     {!hasSearched ? (
-                        <div className="text-center py-20 bg-white rounded-[2rem] border border-dashed border-orange-200">
-                            <p className="text-slate-400 italic">Please select filters and click fetch to view fine records.</p>
+                        <div className="text-center py-20 bg-white rounded-[2rem] border border-dashed border-orange-200 no-print">
+                            <p className="text-slate-400 italic">Please select filters and click search to view fine records.</p>
                         </div>
                     ) : (
                         <>
                             {/* Data Table */}
-                            <div className="bg-white rounded-[2rem] shadow-xl overflow-hidden border border-orange-50">
+                            <div className="bg-white rounded-[2rem] shadow-xl overflow-hidden border border-orange-50 mb-8">
                                 <div className="overflow-x-auto">
                                     <table id="extra-fine-table" className="table w-full text-center">
                                         <thead>
@@ -157,8 +191,8 @@ const ExtraFineReportSahena = () => {
                                                 <th className="py-4">Date</th>
                                                 <th>Depot</th>
                                                 <th>Lorry No</th>
-                                                <th>Driver</th>
-                                                <th>Extra Fine (TK)</th>
+                                                <th>Driver Name</th>
+                                                <th>Extra Fine</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -168,7 +202,7 @@ const ExtraFineReportSahena = () => {
                                                     <td className="text-slate-500 font-medium">{row.dipoName}</td>
                                                     <td className="font-bold text-slate-700">{row.lorryNo}</td>
                                                     <td className="font-medium text-slate-600">{row.driverName || "N/A"}</td>
-                                                    <td className="text-orange-700 font-black text-lg">{Number(row.extraFine).toLocaleString()} </td>
+                                                    <td className="text-orange-700 font-black text-lg">{Number(row.extraFine).toLocaleString()}</td>
                                                 </tr>
                                             )) : (
                                                 <tr><td colSpan="5" className="py-10 text-slate-400 italic">No records found for this period.</td></tr>
@@ -178,11 +212,11 @@ const ExtraFineReportSahena = () => {
                                 </div>
                             </div>
 
-                            {/* Summary Section */}
+                            {/* Summary Cards */}
                             {extraFineRows.length > 0 && (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10 p-8 bg-white rounded-[2rem] border border-orange-100 shadow-sm">
                                     <div>
-                                        <h3 className="text-lg font-bold text-orange-800 mb-4 border-b pb-2">Depot Summary</h3>
+                                        <h3 className="text-lg font-bold text-orange-800 mb-4 border-b pb-2">Summary by Depot</h3>
                                         <div className="space-y-2">
                                             {mainDepots.map(depot => {
                                                 const label = depot.charAt(0).toUpperCase() + depot.slice(1);
@@ -206,7 +240,7 @@ const ExtraFineReportSahena = () => {
                     )}
                 </div>
 
-                {/* Actions */}
+                {/* Buttons */}
                 {hasSearched && extraFineRows.length > 0 && (
                     <div className="mt-8 flex justify-end gap-3 no-print">
                         <button onClick={downloadPDF} className="btn btn-outline border-orange-600 text-orange-600 rounded-xl px-6 font-bold hover:bg-orange-50 transition-all">Download PDF</button>

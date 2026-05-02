@@ -63,51 +63,91 @@ const FineReport = () => {
     }, {});
 
     const downloadPDF = () => {
-        const doc = new jsPDF('p', 'pt', 'a4');
-        doc.setFontSize(18);
-        doc.setTextColor(185, 28, 28);
-        doc.text("Fatema Naz Petroleum", 40, 40);
-        
-        doc.setFontSize(12);
-        doc.setTextColor(100);
-        doc.text("Fine Summary Report", 40, 60);
-        doc.text(`Date Range: ${startDate || 'N/A'} to ${endDate || 'N/A'}`, 40, 75);
+    const doc = new jsPDF('p', 'pt', 'a4');
+    
+    // ১. মূল টাইটেল (সবার উপরে)
+    doc.setFontSize(20);
+    doc.setTextColor(185, 28, 28); // Red color
+    doc.setFont("helvetica", "bold");
+    doc.text("Fatema Naz Petroleum", 40, 40);
 
-        autoTable(doc, { 
-            html: '#fine-table',
-            startY: 95,
-            theme: 'grid',
-            headStyles: { fillColor: [185, 28, 28] },
-            margin: { left: 40, right: 40 },
-        });
+    // ২. সাব-টাইটেল (কন্ডিশনাল: ডেট বা ড্রাইভার থাকলেই কেবল দেখাবে)
+    let infoLine = "";
+    if (searchDriver) {
+        infoLine += `Driver: ${searchDriver}`;
+    }
+    
+    if (startDate && endDate) {
+        if (infoLine) infoLine += " | "; // যদি আগে ড্রাইভারের নাম থাকে তবে মাঝখানে একটি দাগ দিবে
+        infoLine += `Period: ${startDate} to ${endDate}`;
+    }
 
-        let finalY = doc.lastAutoTable.finalY + 30;
-        doc.setFontSize(14);
-        doc.setTextColor(0);
-        doc.text("Summary by Depot", 40, finalY);
-        
-        const summaryData = mainDepots.map(depot => {
-            const name = depot.charAt(0).toUpperCase() + depot.slice(1);
-            return [name, depotSummary[name] || 0];
-        });
-        
-        autoTable(doc, {
-            head: [['Depot Name', 'Total Fine Trips']],
-            body: summaryData,
-            startY: finalY + 10,
-            margin: { left: 40 },
-            tableWidth: 250,
-            theme: 'striped',
-            headStyles: { fillColor: [51, 65, 85] }
-        });
+    // যদি infoLine-এ কোনো ডাটা থাকে তবেই সেটি প্রিন্ট হবে
+    if (infoLine) {
+        doc.setFontSize(10);
+        doc.setTextColor(100); // Grey color
+        doc.setFont("helvetica", "normal");
+        doc.text(infoLine, 40, 58);
+    }
 
-        const totalY = doc.lastAutoTable.finalY + 30;
-        doc.setFontSize(14);
-        doc.setFont("helvetica", "bold");
-        doc.text(`Grand Total Fine: ${totalFineAmount.toLocaleString()} BDT`, 40, totalY);
+    // ৩. রিপোর্টের ধরণ
+    doc.setFontSize(12);
+    doc.setTextColor(0); // Black color
+    doc.setFont("helvetica", "bold");
+    doc.text("Fine Summary Report", 40, 75);
 
-        doc.save(`Fine_Report_${new Date().getTime()}.pdf`);
-    };
+    // ৪. মূল ডাটা টেবিল (HTML টেবিল থেকে ডাটা নিচ্ছে)
+    autoTable(doc, { 
+        html: '#fine-table',
+        startY: infoLine ? 90 : 85, // ইনফো লাইন না থাকলে টেবিল একটু উপরে উঠবে
+        theme: 'grid',
+        headStyles: { fillColor: [185, 28, 28] },
+        styles: { fontSize: 9 },
+        margin: { left: 40, right: 40 },
+    });
+
+    // ৫. ডিপো ভিত্তিক সামারি
+    let finalY = doc.lastAutoTable.finalY + 30;
+    
+    // নতুন পেজ চেক (নিচে জায়গা কম থাকলে পরের পেজে যাবে)
+    if (finalY > 700) {
+        doc.addPage();
+        finalY = 40;
+    }
+
+    doc.setFontSize(14);
+    doc.setTextColor(0);
+    doc.setFont("helvetica", "bold");
+    doc.text("Summary by Depot", 40, finalY);
+    
+    const summaryData = mainDepots.map(depot => {
+        const name = depot.charAt(0).toUpperCase() + depot.slice(1);
+        return [name, `${depotSummary[name] || 0} Trips`];
+    });
+    
+    autoTable(doc, {
+        head: [['Depot Name', 'Total Fine Trips']],
+        body: summaryData,
+        startY: finalY + 10,
+        margin: { left: 40 },
+        tableWidth: 250,
+        theme: 'striped',
+        headStyles: { fillColor: [51, 65, 85] },
+        styles: { fontSize: 10 }
+    });
+
+    // ৬. গ্র্যান্ড টোটাল
+    const totalY = doc.lastAutoTable.finalY + 30;
+    doc.setFontSize(14);
+    doc.setTextColor(185, 28, 28);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Grand Total Fine: ${totalFineAmount.toLocaleString()} TK`, 40, totalY);
+
+    // ফাইল সেভ
+    doc.save(`Fine_Report_${new Date().getTime()}.pdf`);
+};
+    
+    
 
     return (
         <div className="p-4 md:p-8 bg-[#fffcfc] min-h-screen font-sans text-slate-800">

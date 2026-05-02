@@ -68,43 +68,72 @@ const NetSalaryReportDiba = () => {
     const downloadPDF = () => {
         const doc = new jsPDF('p', 'pt', 'a4');
         
-        // Header
-        doc.setFontSize(18);
-        doc.setTextColor(13, 148, 136); // Teal-600
-        doc.text("Diba Ratri Filling Station - Net Salary Report", 40, 45);
-        
-        // Main Table
+        // ১. হেডার সেকশন
+        doc.setFontSize(20);
+        doc.setTextColor(15, 118, 110); // Teal-800
+        doc.setFont("helvetica", "bold");
+        doc.text("Diba Ratri Filling Station", 40, 40);
+
+        // ২. ফিল্টার ইনফো (PDF-এ দেখানোর জন্য)
+        let infoLine = "";
+        const filters = [];
+        if (searchDriver) filters.push(`Driver: ${searchDriver}`);
+        if (searchLorry) filters.push(`Lorry: ${searchLorry}`);
+        if (startDate && endDate) filters.push(`Period: ${startDate} to ${endDate}`);
+        infoLine = filters.join(" | ");
+
+        if (infoLine) {
+            doc.setFontSize(10);
+            doc.setTextColor(100);
+            doc.setFont("helvetica", "normal");
+            doc.text(infoLine, 40, 58);
+        }
+
+        doc.setFontSize(12);
+        doc.setTextColor(0);
+        doc.setFont("helvetica", "bold");
+        doc.text("Net Salary Summary Report", 40, 75);
+
+        // ৩. মেইন টেবিল
         autoTable(doc, { 
             html: '#net-salary-table',
-            startY: 80,
+            startY: infoLine ? 90 : 85,
             theme: 'grid',
-            headStyles: { fillColor: [13, 148, 136] }, // Teal theme
+            headStyles: { fillColor: [13, 148, 136] }, // Teal-600
             styles: { fontSize: 9 },
             margin: { left: 40, right: 40 },
         });
 
+        // ৪. সামারি সেকশন
         let finalY = doc.lastAutoTable.finalY + 30;
+        if (finalY > 700) { doc.addPage(); finalY = 40; }
 
-        // Summary Table
-        const summaryBody = mainDepots.map(depot => {
+        doc.setFontSize(14);
+        doc.setFont("helvetica", "bold");
+        doc.text("Depot Wise Summary", 40, finalY);
+
+        const summaryData = mainDepots.map(depot => {
             const name = depot.charAt(0).toUpperCase() + depot.slice(1);
             return [name, `${depotSummary[name] || 0} Records`];
         });
 
-        summaryBody.push([
-            { content: 'Total Net Salary', styles: { fontStyle: 'bold', fillColor: [240, 253, 250] } }, 
-            { content: `${totalNetAmount.toLocaleString()} BDT`, styles: { fontStyle: 'bold', fillColor: [240, 253, 250] } }
-        ]);
-
         autoTable(doc, {
-            head: [['Depot Summary', 'Count']],
-            body: summaryBody,
-            startY: finalY,
+            head: [['Depot Name', 'Total Records']],
+            body: summaryData,
+            startY: finalY + 10,
             margin: { left: 40 },
-            tableWidth: 300,
-            theme: 'grid',
-            headStyles: { fillColor: [15, 118, 110] }
+            tableWidth: 250,
+            theme: 'striped',
+            headStyles: { fillColor: [51, 65, 85] },
+            styles: { fontSize: 10 }
         });
+
+        // ৫. গ্র্যান্ড টোটাল
+        const totalY = doc.lastAutoTable.finalY + 30;
+        doc.setFontSize(14);
+        doc.setTextColor(15, 118, 110);
+        doc.setFont("helvetica", "bold");
+        doc.text(`Grand Total Net Salary: ${totalNetAmount.toLocaleString()} TK`, 40, totalY);
 
         doc.save(`Net_Salary_Report_${new Date().getTime()}.pdf`);
     };
@@ -150,13 +179,13 @@ const NetSalaryReportDiba = () => {
 
                 <div id="report-content">
                     {!hasSearched ? (
-                        <div className="text-center py-20 bg-white rounded-[2rem] border border-dashed border-teal-200">
+                        <div className="text-center py-20 bg-white rounded-[2rem] border border-dashed border-teal-200 no-print">
                             <p className="text-slate-400 italic">ফিল্টার সেট করে নিট স্যালারি ডাটা লোড করুন।</p>
                         </div>
                     ) : (
                         <>
                             {/* Data Table */}
-                            <div className="bg-white rounded-[2rem] shadow-xl overflow-hidden border border-teal-50">
+                            <div className="bg-white rounded-[2rem] shadow-xl overflow-hidden border border-teal-50 mb-8">
                                 <div className="overflow-x-auto">
                                     <table id="net-salary-table" className="table w-full text-center">
                                         <thead>

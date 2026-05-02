@@ -14,7 +14,6 @@ const FineReportSahena = () => {
     // মূল ডিপো কি-ওয়ার্ডস
     const mainDepots = ["parbatipur", "baghabari", "rangpur"];
 
-    // ডাটা ফেচ করার ফাংশন
     const fetchFines = async () => {
         try {
             setHasSearched(true);
@@ -31,11 +30,10 @@ const FineReportSahena = () => {
         } catch (error) {
             console.error("Fetch Error:", error);
             setTrips([]);
-            alert("সার্ভার থেকে ডাটা লোড করা সম্ভব হয়নি।");
+            alert("Failed to load data from server.");
         }
     };
 
-    // জরিমানাযুক্ত রো ফিল্টার
     const fineRows = (trips || []).flatMap(trip => 
         (trip.rows || []).map(row => ({
             ...row,
@@ -48,12 +46,13 @@ const FineReportSahena = () => {
         return hasFine && matchesDriver;
     });
 
-    // মোট জরিমানার হিসাব
     const totalFineAmount = fineRows.reduce((sum, row) => sum + (Number(row.fine) || 0), 0);
 
     // ডিপো সামারি লজিক (Partial Match)
     const depotSummary = fineRows.reduce((acc, row) => {
         const rawName = row.dipoName?.toLowerCase() || "";
+        
+        // চেক করা হচ্ছে নামের ভেতর parbatipur/baghabari/rangpur আছে কি না
         const matchedDepot = mainDepots.find(depot => rawName.includes(depot));
         
         if (matchedDepot) {
@@ -64,115 +63,165 @@ const FineReportSahena = () => {
     }, {});
 
     const downloadPDF = () => {
-        const doc = new jsPDF('p', 'pt', 'a4');
-        doc.setFontSize(18);
-        doc.setTextColor(185, 28, 28);
-        doc.text("Fatema Naz Petroleum - Fine Report (Sahena)", 40, 40);
-        
-        autoTable(doc, { 
-            html: '#fine-table',
-            startY: 65,
-            theme: 'grid',
-            headStyles: { fillColor: [185, 28, 28] },
-            margin: { left: 40, right: 40 },
-        });
+    const doc = new jsPDF('p', 'pt', 'a4');
+    
+    // ১. মূল টাইটেল (সবার উপরে)
+    doc.setFontSize(20);
+    doc.setTextColor(185, 28, 28); // Red color
+    doc.setFont("helvetica", "bold");
+    doc.text("Sahena EnterPrise", 40, 40);
 
-        let finalY = doc.lastAutoTable.finalY + 30;
-        doc.setFontSize(14);
-        doc.setTextColor(0);
-        doc.text("Summary (Specific Depots)", 40, finalY);
-        
-        const summaryData = mainDepots.map(depot => {
-            const name = depot.charAt(0).toUpperCase() + depot.slice(1);
-            return [name, depotSummary[name] || 0];
-        });
-        
-        autoTable(doc, {
-            head: [['Depot Name', 'Total Fine Trips']],
-            body: summaryData,
-            startY: finalY + 10,
-            margin: { left: 40 },
-            tableWidth: 250,
-            theme: 'striped',
-            headStyles: { fillColor: [51, 65, 85] }
-        });
+    // ২. সাব-টাইটেল (কন্ডিশনাল: ডেট বা ড্রাইভার থাকলেই কেবল দেখাবে)
+    let infoLine = "";
+    if (searchDriver) {
+        infoLine += `Driver: ${searchDriver}`;
+    }
+    
+    if (startDate && endDate) {
+        if (infoLine) infoLine += " | "; // যদি আগে ড্রাইভারের নাম থাকে তবে মাঝখানে একটি দাগ দিবে
+        infoLine += `Period: ${startDate} to ${endDate}`;
+    }
 
-        doc.save(`Fine_Report_Sahena_${new Date().getTime()}.pdf`);
-    };
+    // যদি infoLine-এ কোনো ডাটা থাকে তবেই সেটি প্রিন্ট হবে
+    if (infoLine) {
+        doc.setFontSize(10);
+        doc.setTextColor(100); // Grey color
+        doc.setFont("helvetica", "normal");
+        doc.text(infoLine, 40, 58);
+    }
+
+    // ৩. রিপোর্টের ধরণ
+    doc.setFontSize(12);
+    doc.setTextColor(0); // Black color
+    doc.setFont("helvetica", "bold");
+    doc.text("Fine Summary Report", 40, 75);
+
+    // ৪. মূল ডাটা টেবিল (HTML টেবিল থেকে ডাটা নিচ্ছে)
+    autoTable(doc, { 
+        html: '#fine-table',
+        startY: infoLine ? 90 : 85, // ইনফো লাইন না থাকলে টেবিল একটু উপরে উঠবে
+        theme: 'grid',
+        headStyles: { fillColor: [185, 28, 28] },
+        styles: { fontSize: 9 },
+        margin: { left: 40, right: 40 },
+    });
+
+    // ৫. ডিপো ভিত্তিক সামারি
+    let finalY = doc.lastAutoTable.finalY + 30;
+    
+    // নতুন পেজ চেক (নিচে জায়গা কম থাকলে পরের পেজে যাবে)
+    if (finalY > 700) {
+        doc.addPage();
+        finalY = 40;
+    }
+
+    doc.setFontSize(14);
+    doc.setTextColor(0);
+    doc.setFont("helvetica", "bold");
+    doc.text("Summary by Depot", 40, finalY);
+    
+    const summaryData = mainDepots.map(depot => {
+        const name = depot.charAt(0).toUpperCase() + depot.slice(1);
+        return [name, `${depotSummary[name] || 0} Trips`];
+    });
+    
+    autoTable(doc, {
+        head: [['Depot Name', 'Total Fine Trips']],
+        body: summaryData,
+        startY: finalY + 10,
+        margin: { left: 40 },
+        tableWidth: 250,
+        theme: 'striped',
+        headStyles: { fillColor: [51, 65, 85] },
+        styles: { fontSize: 10 }
+    });
+
+    // ৬. গ্র্যান্ড টোটাল
+    const totalY = doc.lastAutoTable.finalY + 30;
+    doc.setFontSize(14);
+    doc.setTextColor(185, 28, 28);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Grand Total Fine: ${totalFineAmount.toLocaleString()} TK`, 40, totalY);
+
+    // ফাইল সেভ
+    doc.save(`Fine_Report_${new Date().getTime()}.pdf`);
+};
+    
+    
 
     return (
         <div className="p-4 md:p-8 bg-[#fffcfc] min-h-screen font-sans text-slate-800">
             <div className="max-w-5xl mx-auto">
                 
-                {/* হেডার */}
+                {/* Header */}
                 <div className="flex justify-between items-center mb-8 no-print">
                     <div className="flex items-center gap-4">
                         <button onClick={() => navigate(-1)} className="btn btn-circle btn-outline btn-sm">❮</button>
-                        <h1 className="text-3xl font-extrabold text-red-700">জরিমানা রিপোর্ট (সাহেনা)</h1>
+                        <h1 className="text-3xl font-extrabold text-red-700">Fine Report Sahena</h1>
                     </div>
                 </div>
 
-                {/* সার্চ বক্স */}
+                {/* Filter Section */}
                 <div className="bg-white p-6 rounded-3xl shadow-sm border border-red-100 mb-8 no-print">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                         <div className="form-control">
-                            <label className="label text-xs font-bold text-slate-500 uppercase">শুরু তারিখ</label>
+                            <label className="label text-xs font-bold text-slate-500 uppercase">Start Date</label>
                             <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="input input-bordered border-red-100" />
                         </div>
                         <div className="form-control">
-                            <label className="label text-xs font-bold text-slate-500 uppercase">শেষ তারিখ</label>
+                            <label className="label text-xs font-bold text-slate-500 uppercase">End Date</label>
                             <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="input input-bordered border-red-100" />
                         </div>
                         <div className="form-control">
-                            <label className="label text-xs font-bold text-slate-500 uppercase">ড্রাইভার নাম</label>
-                            <input type="text" value={searchDriver} onChange={(e) => setSearchDriver(e.target.value)} className="input input-bordered border-red-100" placeholder="ড্রাইভারের নাম..." />
+                            <label className="label text-xs font-bold text-slate-500 uppercase">Driver Name</label>
+                            <input type="text" value={searchDriver} onChange={(e) => setSearchDriver(e.target.value)} className="input input-bordered border-red-100" placeholder="Driver name..." />
                         </div>
-                        <button onClick={fetchFines} className="btn bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl border-none">সার্চ লোড</button>
+                        <button onClick={fetchFines} className="btn bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl border-none">Search Report</button>
                     </div>
                 </div>
 
-                {/* রিপোর্ট টেবিল ও সামারি */}
+                {/* Report Table */}
                 <div className="print-section">
                     {!hasSearched ? (
                         <div className="text-center py-20 bg-white rounded-[2rem] border border-dashed border-red-200 no-print">
-                            <p className="text-slate-400">জরিমানার ডাটা দেখতে তারিখ ও নাম দিয়ে সার্চ দিন।</p>
+                            <p className="text-slate-400">Search to view reports.</p>
                         </div>
                     ) : (
                         <>
-                            <div className="bg-white rounded-[2rem] shadow-xl overflow-hidden border border-red-50">
+                            <div className="bg-white rounded-[2rem] shadow-xl overflow-hidden border border-red-50 mb-8">
                                 <div className="overflow-x-auto">
                                     <table id="fine-table" className="table w-full text-center">
                                         <thead>
                                             <tr className="bg-red-700 text-white border-none">
-                                                <th className="py-4">তারিখ</th>
-                                                <th>ডিপো</th>
-                                                <th>গাড়ি নং</th>
-                                                <th>ড্রাইভার</th>
-                                                <th>জরিমানা (৳)</th>
+                                                <th className="py-4">Date</th>
+                                                <th>Depot</th>
+                                                <th>Lorry No</th>
+                                                <th>Driver Name</th>
+                                                <th>Fine Amount (৳)</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {fineRows.length > 0 ? fineRows.map((row, idx) => (
                                                 <tr key={idx} className="hover:bg-red-50/30 transition-colors border-b border-red-50">
-                                                    <td className="text-xs">{row.date}</td>
-                                                    <td className="font-medium text-slate-500">{row.dipoName}</td>
-                                                    <td className="font-bold text-slate-700">{row.lorryNo}</td>
-                                                    <td className="font-medium text-slate-600">{row.driverName}</td>
-                                                    <td className="text-red-600 font-black text-lg">{Number(row.fine).toLocaleString()}</td>
+                                                    <td>{row.date}</td>
+                                                    <td>{row.dipoName}</td>
+                                                    <td>{row.lorryNo}</td>
+                                                    <td>{row.driverName}</td>
+                                                    <td className="text-red-600 font-bold">{Number(row.fine).toLocaleString()}</td>
                                                 </tr>
                                             )) : (
-                                                <tr><td colSpan="5" className="py-10">কোন জরিমানার তথ্য পাওয়া যায়নি</td></tr>
+                                                <tr><td colSpan="5" className="py-10">No data found.</td></tr>
                                             )}
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
 
-                            {/* সামারি বক্স */}
+                            {/* Summary Section */}
                             {fineRows.length > 0 && (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10 p-8 bg-white rounded-[2rem] border border-red-100 shadow-sm">
                                     <div>
-                                        <h3 className="text-lg font-bold text-slate-700 mb-4 border-b pb-2">ডিপো সামারি</h3>
+                                        <h3 className="text-lg font-bold text-slate-700 mb-4 border-b pb-2">Summary by Depo</h3>
                                         <div className="space-y-2">
                                             {mainDepots.map(depot => {
                                                 const label = depot.charAt(0).toUpperCase() + depot.slice(1);
@@ -180,7 +229,7 @@ const FineReportSahena = () => {
                                                 return (
                                                     <div key={depot} className="flex justify-between items-center bg-slate-50 p-3 rounded-lg">
                                                         <span className="font-medium text-slate-600">{label}</span>
-                                                        <span className="badge badge-ghost font-bold">{count} ট্রিপ</span>
+                                                        <span className="badge badge-ghost font-bold">{count} Trips</span>
                                                     </div>
                                                 );
                                             })}
@@ -188,7 +237,7 @@ const FineReportSahena = () => {
                                     </div>
 
                                     <div className="flex flex-col justify-center items-end border-l pl-6">
-                                        <span className="text-slate-500 font-bold uppercase text-xs tracking-widest">সর্বমোট জরিমানা</span>
+                                        <span className="text-slate-500 font-bold uppercase text-xs tracking-widest">Grand Total Fine</span>
                                         <span className="text-4xl font-black text-red-700">{totalFineAmount.toLocaleString()} ৳</span>
                                     </div>
                                 </div>
@@ -197,11 +246,11 @@ const FineReportSahena = () => {
                     )}
                 </div>
 
-                {/* একশন বাটন */}
+                {/* Buttons */}
                 {hasSearched && fineRows.length > 0 && (
                     <div className="mt-8 flex justify-end gap-3 no-print">
-                        <button onClick={downloadPDF} className="btn btn-outline border-red-600 text-red-600 rounded-xl px-6 font-bold">PDF ডাউনলোড</button>
-                        <button onClick={() => window.print()} className="btn bg-red-600 text-white rounded-xl px-8 font-bold border-none">প্রিন্ট করুন</button>
+                        <button onClick={downloadPDF} className="btn btn-outline border-red-600 text-red-600 rounded-xl px-6 font-bold">Download PDF</button>
+                        <button onClick={() => window.print()} className="btn bg-red-600 text-white rounded-xl px-8 font-bold border-none">Print Report</button>
                     </div>
                 )}
             </div>

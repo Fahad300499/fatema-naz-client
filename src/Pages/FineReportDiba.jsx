@@ -11,7 +11,7 @@ const FineReportDiba = () => {
     const [endDate, setEndDate] = useState("");     
     const [hasSearched, setHasSearched] = useState(false);
 
-    // মূল ডিপো কি-ওয়ার্ডস
+    // Main Depot Keywords
     const mainDepots = ["parbatipur", "baghabari", "rangpur"];
 
     const fetchFines = async () => {
@@ -21,6 +21,7 @@ const FineReportDiba = () => {
             if (startDate) params.append("startDate", startDate);
             if (endDate) params.append("endDate", endDate);
 
+            // Specific endpoint for Diba branch
             const url = `https://api.ashrafulenterprise.com/trips-diba?${params.toString()}`;
             const res = await fetch(url);
             if (!res.ok) throw new Error("Server response error");
@@ -30,7 +31,7 @@ const FineReportDiba = () => {
         } catch (error) {
             console.error("Fetch Error:", error);
             setTrips([]);
-            alert("সার্ভার থেকে ডাটা লোড করা সম্ভব হয়নি।");
+            alert("Could not load data from server.");
         }
     };
 
@@ -48,7 +49,7 @@ const FineReportDiba = () => {
 
     const totalFineAmount = fineRows.reduce((sum, row) => sum + (Number(row.fine) || 0), 0);
 
-    // ডিপো সামারি লজিক (Partial Match)
+    // Depot Summary Logic (Partial Match)
     const depotSummary = fineRows.reduce((acc, row) => {
         const rawName = row.dipoName?.toLowerCase() || "";
         const matchedDepot = mainDepots.find(depot => rawName.includes(depot));
@@ -62,26 +63,60 @@ const FineReportDiba = () => {
 
     const downloadPDF = () => {
         const doc = new jsPDF('p', 'pt', 'a4');
-        doc.setFontSize(18);
-        doc.setTextColor(185, 28, 28);
-        doc.text("Fatema Naz Petroleum - Fine Report (Diba)", 40, 40);
         
+        // 1. Main Title
+        doc.setFontSize(20);
+        doc.setTextColor(185, 28, 28); // Red color
+        doc.setFont("helvetica", "bold");
+        doc.text("Fatema Naz Petroleum (Diba)", 40, 40);
+
+        // 2. Sub-title (Info Line)
+        let infoLine = "";
+        if (searchDriver) infoLine += `Driver: ${searchDriver}`;
+        if (startDate && endDate) {
+            if (infoLine) infoLine += " | ";
+            infoLine += `Period: ${startDate} to ${endDate}`;
+        }
+
+        if (infoLine) {
+            doc.setFontSize(10);
+            doc.setTextColor(100); 
+            doc.setFont("helvetica", "normal");
+            doc.text(infoLine, 40, 58);
+        }
+
+        // 3. Report Type
+        doc.setFontSize(12);
+        doc.setTextColor(0); 
+        doc.setFont("helvetica", "bold");
+        doc.text("Fine Summary Report", 40, 75);
+
+        // 4. Main Data Table
         autoTable(doc, { 
             html: '#fine-table',
-            startY: 65,
+            startY: infoLine ? 90 : 85,
             theme: 'grid',
             headStyles: { fillColor: [185, 28, 28] },
+            styles: { fontSize: 9 },
             margin: { left: 40, right: 40 },
         });
 
+        // 5. Depot Summary
         let finalY = doc.lastAutoTable.finalY + 30;
+        
+        if (finalY > 700) {
+            doc.addPage();
+            finalY = 40;
+        }
+
         doc.setFontSize(14);
         doc.setTextColor(0);
-        doc.text("Summary (Specific Depots)", 40, finalY);
+        doc.setFont("helvetica", "bold");
+        doc.text("Summary by Depot", 40, finalY);
         
         const summaryData = mainDepots.map(depot => {
             const name = depot.charAt(0).toUpperCase() + depot.slice(1);
-            return [name, depotSummary[name] || 0];
+            return [name, `${depotSummary[name] || 0} Trips`];
         });
         
         autoTable(doc, {
@@ -91,8 +126,16 @@ const FineReportDiba = () => {
             margin: { left: 40 },
             tableWidth: 250,
             theme: 'striped',
-            headStyles: { fillColor: [51, 65, 85] }
+            headStyles: { fillColor: [51, 65, 85] },
+            styles: { fontSize: 10 }
         });
+
+        // 6. Grand Total
+        const totalY = doc.lastAutoTable.finalY + 30;
+        doc.setFontSize(14);
+        doc.setTextColor(185, 28, 28);
+        doc.setFont("helvetica", "bold");
+        doc.text(`Grand Total Fine: ${totalFineAmount.toLocaleString()} TK`, 40, totalY);
 
         doc.save(`Fine_Report_Diba_${new Date().getTime()}.pdf`);
     };
@@ -105,7 +148,7 @@ const FineReportDiba = () => {
                 <div className="flex justify-between items-center mb-8 no-print">
                     <div className="flex items-center gap-4">
                         <button onClick={() => navigate(-1)} className="btn btn-circle btn-outline btn-sm">❮</button>
-                        <h1 className="text-3xl font-extrabold text-red-700">জরিমানা রিপোর্ট (দিবা)</h1>
+                        <h1 className="text-3xl font-extrabold text-red-700">Fine Report (Diba)</h1>
                     </div>
                 </div>
 
@@ -113,26 +156,26 @@ const FineReportDiba = () => {
                 <div className="bg-white p-6 rounded-3xl shadow-sm border border-red-100 mb-8 no-print">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                         <div className="form-control">
-                            <label className="label text-xs font-bold text-slate-500 uppercase">শুরু তারিখ</label>
-                            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="input input-bordered border-red-100" />
+                            <label className="label text-xs font-bold text-slate-500 uppercase">Start Date</label>
+                            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="input input-bordered border-red-100 focus:border-red-400" />
                         </div>
                         <div className="form-control">
-                            <label className="label text-xs font-bold text-slate-500 uppercase">শেষ তারিখ</label>
-                            <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="input input-bordered border-red-100" />
+                            <label className="label text-xs font-bold text-slate-500 uppercase">End Date</label>
+                            <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="input input-bordered border-red-100 focus:border-red-400" />
                         </div>
                         <div className="form-control">
-                            <label className="label text-xs font-bold text-slate-500 uppercase">ড্রাইভার নাম</label>
-                            <input type="text" value={searchDriver} onChange={(e) => setSearchDriver(e.target.value)} className="input input-bordered border-red-100" placeholder="ড্রাইভারের নাম..." />
+                            <label className="label text-xs font-bold text-slate-500 uppercase">Driver Name</label>
+                            <input type="text" value={searchDriver} onChange={(e) => setSearchDriver(e.target.value)} className="input input-bordered border-red-100 focus:border-red-400" placeholder="Enter name..." />
                         </div>
-                        <button onClick={fetchFines} className="btn bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl border-none">সার্চ লোড</button>
+                        <button onClick={fetchFines} className="btn bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl border-none h-12">Show Report</button>
                     </div>
                 </div>
 
-                {/* Report Content */}
+                {/* Report Table */}
                 <div className="print-section">
                     {!hasSearched ? (
                         <div className="text-center py-20 bg-white rounded-[2rem] border border-dashed border-red-200 no-print">
-                            <p className="text-slate-400">জরিমানার ডাটা দেখতে তারিখ ও নাম দিয়ে সার্চ দিন।</p>
+                            <p className="text-slate-400 font-medium">Please search to view fine data.</p>
                         </div>
                     ) : (
                         <>
@@ -141,11 +184,11 @@ const FineReportDiba = () => {
                                     <table id="fine-table" className="table w-full text-center">
                                         <thead>
                                             <tr className="bg-red-700 text-white border-none">
-                                                <th className="py-4">তারিখ</th>
-                                                <th>ডিপো</th>
-                                                <th>গাড়ি নং</th>
-                                                <th>ড্রাইভার</th>
-                                                <th>জরিমানা (৳)</th>
+                                                <th className="py-4">Date</th>
+                                                <th>Depot</th>
+                                                <th>Lorry No</th>
+                                                <th>Driver</th>
+                                                <th>Fine (TK)</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -158,18 +201,18 @@ const FineReportDiba = () => {
                                                     <td className="text-red-600 font-bold">{Number(row.fine).toLocaleString()}</td>
                                                 </tr>
                                             )) : (
-                                                <tr><td colSpan="5" className="py-10">কোন ডাটা পাওয়া যায়নি।</td></tr>
+                                                <tr><td colSpan="5" className="py-10 text-slate-400">No data found.</td></tr>
                                             )}
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
 
-                            {/* Summary Box */}
+                            {/* Summary Section */}
                             {fineRows.length > 0 && (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10 p-8 bg-white rounded-[2rem] border border-red-100 shadow-sm">
                                     <div>
-                                        <h3 className="text-lg font-bold text-slate-700 mb-4 border-b pb-2">ডিপো ভিত্তিক সামারি</h3>
+                                        <h3 className="text-lg font-bold text-slate-700 mb-4 border-b pb-2">Depot Summary</h3>
                                         <div className="space-y-2">
                                             {mainDepots.map(depot => {
                                                 const label = depot.charAt(0).toUpperCase() + depot.slice(1);
@@ -177,7 +220,7 @@ const FineReportDiba = () => {
                                                 return (
                                                     <div key={depot} className="flex justify-between items-center bg-slate-50 p-3 rounded-lg">
                                                         <span className="font-medium text-slate-600">{label}</span>
-                                                        <span className="badge badge-ghost font-bold">{count} ট্রিপ</span>
+                                                        <span className="badge badge-ghost font-bold">{count} Trips</span>
                                                     </div>
                                                 );
                                             })}
@@ -185,8 +228,8 @@ const FineReportDiba = () => {
                                     </div>
 
                                     <div className="flex flex-col justify-center items-end border-l pl-6">
-                                        <span className="text-slate-500 font-bold uppercase text-xs tracking-widest">সর্বমোট জরিমানা</span>
-                                        <span className="text-4xl font-black text-red-700">{totalFineAmount.toLocaleString()} ৳</span>
+                                        <span className="text-slate-500 font-bold uppercase text-xs tracking-widest">Grand Total Fine</span>
+                                        <span className="text-4xl font-black text-red-700">{totalFineAmount.toLocaleString()} TK</span>
                                     </div>
                                 </div>
                             )}
@@ -197,8 +240,8 @@ const FineReportDiba = () => {
                 {/* Buttons */}
                 {hasSearched && fineRows.length > 0 && (
                     <div className="mt-8 flex justify-end gap-3 no-print">
-                        <button onClick={downloadPDF} className="btn btn-outline border-red-600 text-red-600 rounded-xl px-6 font-bold">PDF ডাউনলোড</button>
-                        <button onClick={() => window.print()} className="btn bg-red-600 text-white rounded-xl px-8 font-bold border-none">প্রিন্ট করুন</button>
+                        <button onClick={downloadPDF} className="btn btn-outline border-red-600 text-red-600 rounded-xl px-6 font-bold">Download PDF</button>
+                        <button onClick={() => window.print()} className="btn bg-red-600 text-white rounded-xl px-8 font-bold border-none">Print Report</button>
                     </div>
                 )}
             </div>
@@ -207,6 +250,7 @@ const FineReportDiba = () => {
                 @media print {
                     .no-print { display: none !important; }
                     body { background: white !important; }
+                    .print-section { width: 100% !important; }
                 }
             `}} />
         </div>

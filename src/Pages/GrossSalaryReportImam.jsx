@@ -68,45 +68,77 @@ const GrossSalaryReportImam = () => {
     const downloadPDF = () => {
         const doc = new jsPDF('p', 'pt', 'a4');
         
-        // Header
-        doc.setFontSize(18);
-        doc.setTextColor(13, 148, 136); // Teal-600
-        doc.text("Imam Hossain Petrolium - Gross Salary Report", 40, 45);
+        // ১. মূল টাইটেল
+        doc.setFontSize(20);
+        doc.setTextColor(15, 118, 110); // Teal-800
+        doc.setFont("helvetica", "bold");
+        doc.text("Imam Hossain Petrolium", 40, 40);
+
+        // ২. সাব-টাইটেল (ফিল্টার অনুযায়ী তথ্য)
+        let infoLine = "";
+        const filters = [];
+        if (searchDriver) filters.push(`Driver: ${searchDriver}`);
+        if (searchLorry) filters.push(`Lorry: ${searchLorry}`);
+        if (startDate && endDate) filters.push(`Period: ${startDate} to ${endDate}`);
         
-        // Main Table
+        infoLine = filters.join(" | ");
+
+        if (infoLine) {
+            doc.setFontSize(10);
+            doc.setTextColor(100);
+            doc.setFont("helvetica", "normal");
+            doc.text(infoLine, 40, 58);
+        }
+
+        // ৩. রিপোর্টের নাম
+        doc.setFontSize(12);
+        doc.setTextColor(0);
+        doc.setFont("helvetica", "bold");
+        doc.text("Gross Salary Summary Report (Diba)", 40, 75);
+
+        // ৪. ডাটা টেবিল
         autoTable(doc, { 
             html: '#gross-salary-table',
-            startY: 80,
+            startY: infoLine ? 90 : 85,
             theme: 'grid',
-            headStyles: { fillColor: [13, 148, 136] }, // Teal theme
+            headStyles: { fillColor: [13, 148, 136] }, // Teal-600
             styles: { fontSize: 9 },
             margin: { left: 40, right: 40 },
         });
 
+        // ৫. সামারি সেকশন
         let finalY = doc.lastAutoTable.finalY + 30;
+        if (finalY > 700) { doc.addPage(); finalY = 40; }
 
-        // Summary Table
-        const summaryBody = mainDepots.map(depot => {
+        doc.setFontSize(14);
+        doc.setTextColor(0);
+        doc.setFont("helvetica", "bold");
+        doc.text("Summary by Depot", 40, finalY);
+
+        const summaryData = mainDepots.map(depot => {
             const name = depot.charAt(0).toUpperCase() + depot.slice(1);
             return [name, `${depotSummary[name] || 0} Records`];
         });
 
-        summaryBody.push([
-            { content: 'Total Gross Salary', styles: { fontStyle: 'bold', fillColor: [240, 253, 250] } }, 
-            { content: `${totalGrossAmount.toLocaleString()} BDT`, styles: { fontStyle: 'bold', fillColor: [240, 253, 250] } }
-        ]);
-
         autoTable(doc, {
-            head: [['Depot Summary', 'Count']],
-            body: summaryBody,
-            startY: finalY,
+            head: [['Depot Name', 'Total Records']],
+            body: summaryData,
+            startY: finalY + 10,
             margin: { left: 40 },
-            tableWidth: 300,
-            theme: 'grid',
-            headStyles: { fillColor: [15, 118, 110] }
+            tableWidth: 250,
+            theme: 'striped',
+            headStyles: { fillColor: [51, 65, 85] },
+            styles: { fontSize: 10 }
         });
 
-        doc.save(`Gross_Salary_Report_${new Date().getTime()}.pdf`);
+        // ৬. গ্র্যান্ড টোটাল
+        const totalY = doc.lastAutoTable.finalY + 30;
+        doc.setFontSize(14);
+        doc.setTextColor(15, 118, 110);
+        doc.setFont("helvetica", "bold");
+        doc.text(`Grand Total Gross Salary: ${totalGrossAmount.toLocaleString()} TK`, 40, totalY);
+
+        doc.save(`Diba_Gross_Salary_Report_${new Date().getTime()}.pdf`);
     };
 
     return (
@@ -117,7 +149,7 @@ const GrossSalaryReportImam = () => {
                 <div className="flex justify-between items-center mb-8 no-print">
                     <div className="flex items-center gap-4">
                         <button onClick={() => navigate(-1)} className="btn btn-circle btn-outline btn-sm border-teal-300 text-teal-600 hover:bg-teal-50 transition-all">❮</button>
-                        <h1 className="text-3xl font-extrabold text-teal-900">Gross Salary Report</h1>
+                        <h1 className="text-3xl font-extrabold text-teal-900">Imam Hossain Gross Salary</h1>
                     </div>
                 </div>
 
@@ -145,27 +177,27 @@ const GrossSalaryReportImam = () => {
                             <input type="text" value={searchDriver} onChange={(e) => setSearchDriver(e.target.value)} className="input input-bordered border-teal-100 focus:border-teal-500" placeholder="নাম..." />
                         </div>
                     </div>
-                    <button onClick={fetchGrossSalaryData} className="btn bg-teal-700 hover:bg-teal-800 text-white w-full mt-6 font-bold rounded-xl border-none shadow-lg shadow-teal-100 transition-all">Fetch Salary Data</button>
+                    <button onClick={fetchGrossSalaryData} className="btn bg-teal-700 hover:bg-teal-800 text-white w-full mt-6 font-bold rounded-xl border-none shadow-lg shadow-teal-100 transition-all">Search Salary Data</button>
                 </div>
 
                 <div id="report-content">
                     {!hasSearched ? (
-                        <div className="text-center py-20 bg-white rounded-[2rem] border border-dashed border-teal-200">
-                            <p className="text-slate-400 italic">ফিল্টার সেট করে ডাটা লোড করুন।</p>
+                        <div className="text-center py-20 bg-white rounded-[2rem] border border-dashed border-teal-200 no-print">
+                            <p className="text-slate-400 italic">ফিল্টার সেট করে সার্চ করুন।</p>
                         </div>
                     ) : (
                         <>
                             {/* Data Table */}
-                            <div className="bg-white rounded-[2rem] shadow-xl overflow-hidden border border-teal-50">
+                            <div className="bg-white rounded-[2rem] shadow-xl overflow-hidden border border-teal-50 mb-8">
                                 <div className="overflow-x-auto">
                                     <table id="gross-salary-table" className="table w-full text-center">
                                         <thead>
                                             <tr className="bg-teal-800 text-white border-none">
                                                 <th className="py-4">Date</th>
-                                                <th>Depo</th>
+                                                <th>Depot</th>
                                                 <th>Lorry No</th>
-                                                <th>Driver</th>
-                                                <th>Gross Salary (TK)</th>
+                                                <th>Driver Name</th>
+                                                <th>Gross Salary (৳)</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -178,7 +210,7 @@ const GrossSalaryReportImam = () => {
                                                     <td className="text-teal-700 font-black text-lg">{row.grossSalary.toLocaleString()}</td>
                                                 </tr>
                                             )) : (
-                                                <tr><td colSpan="5" className="py-10 text-slate-400 italic">কোন তথ্য পাওয়া যায়নি।</td></tr>
+                                                <tr><td colSpan="5" className="py-10 text-slate-400 italic">কোন তথ্য পাওয়া যায়নি।</td></tr>
                                             )}
                                         </tbody>
                                     </table>
@@ -189,7 +221,7 @@ const GrossSalaryReportImam = () => {
                             {salaryRows.length > 0 && (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10 p-8 bg-white rounded-[2rem] border border-teal-100 shadow-sm">
                                     <div>
-                                        <h3 className="text-lg font-bold text-teal-900 mb-4 border-b pb-2">Depot Summary</h3>
+                                        <h3 className="text-lg font-bold text-teal-900 mb-4 border-b pb-2">Summary by Depot</h3>
                                         <div className="space-y-2">
                                             {mainDepots.map(depot => {
                                                 const label = depot.charAt(0).toUpperCase() + depot.slice(1);
@@ -204,7 +236,7 @@ const GrossSalaryReportImam = () => {
                                         </div>
                                     </div>
                                     <div className="flex flex-col justify-center items-end border-l border-teal-50 pl-6">
-                                        <span className="text-slate-500 font-bold uppercase text-xs tracking-widest">Total Gross Amount</span>
+                                        <span className="text-slate-500 font-bold uppercase text-xs tracking-widest">Total Gross Salary</span>
                                         <span className="text-4xl font-black text-teal-700">{totalGrossAmount.toLocaleString()} ৳</span>
                                     </div>
                                 </div>

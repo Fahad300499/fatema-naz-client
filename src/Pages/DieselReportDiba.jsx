@@ -67,43 +67,75 @@ const DieselReportDiba = () => {
     const downloadPDF = () => {
         const doc = new jsPDF('p', 'pt', 'a4');
         
-        // Header
-        doc.setFontSize(18);
+        // ১. মূল টাইটেল
+        doc.setFontSize(20);
         doc.setTextColor(30, 58, 138); // Blue-900
-        doc.text("Diba Ratri Filling  - Diesel Report", 40, 45);
+        doc.setFont("helvetica", "bold");
+        doc.text("Diba Ratri Filling Station", 40, 40);
+
+        // ২. সাব-টাইটেল (ফিল্টার অনুযায়ী তথ্য)
+        let infoLine = "";
+        const filters = [];
+        if (searchDriver) filters.push(`Driver: ${searchDriver}`);
+        if (searchLorry) filters.push(`Lorry: ${searchLorry}`);
+        if (startDate && endDate) filters.push(`Period: ${startDate} to ${endDate}`);
         
-        // Main Table
+        infoLine = filters.join(" | ");
+
+        if (infoLine) {
+            doc.setFontSize(10);
+            doc.setTextColor(100);
+            doc.setFont("helvetica", "normal");
+            doc.text(infoLine, 40, 58);
+        }
+
+        // ৩. রিপোর্টের নাম
+        doc.setFontSize(12);
+        doc.setTextColor(0);
+        doc.setFont("helvetica", "bold");
+        doc.text("Diesel Usage Summary Report", 40, 75);
+
+        // ৪. ডাটা টেবিল
         autoTable(doc, { 
             html: '#diesel-table',
-            startY: 80,
+            startY: infoLine ? 90 : 85,
             theme: 'grid',
-            headStyles: { fillColor: [30, 58, 138] }, // Dark Blue theme
+            headStyles: { fillColor: [30, 58, 138] }, 
             styles: { fontSize: 9 },
             margin: { left: 40, right: 40 },
         });
 
+        // ৫. ডিপো সামারি টেবিল
         let finalY = doc.lastAutoTable.finalY + 30;
+        if (finalY > 700) { doc.addPage(); finalY = 40; }
 
-        // Summary Table Body
-        const summaryBody = mainDepots.map(depot => {
+        doc.setFontSize(14);
+        doc.setTextColor(0);
+        doc.setFont("helvetica", "bold");
+        doc.text("Summary by Depot", 40, finalY);
+        
+        const summaryData = mainDepots.map(depot => {
             const name = depot.charAt(0).toUpperCase() + depot.slice(1);
             return [name, `${depotSummary[name] || 0} Records`];
         });
-
-        summaryBody.push([
-            { content: 'Total Diesel Amount', styles: { fontStyle: 'bold', fillColor: [239, 246, 255] } }, 
-            { content: `${totalDieselAmount.toLocaleString()} BDT`, styles: { fontStyle: 'bold', fillColor: [239, 246, 255] } }
-        ]);
-
+        
         autoTable(doc, {
-            head: [['Depot Summary', 'Details']],
-            body: summaryBody,
-            startY: finalY,
+            head: [['Depot Name', 'Total Records']],
+            body: summaryData,
+            startY: finalY + 10,
             margin: { left: 40 },
-            tableWidth: 300,
-            theme: 'grid',
-            headStyles: { fillColor: [29, 78, 216] } // Medium Blue
+            tableWidth: 250,
+            theme: 'striped',
+            headStyles: { fillColor: [51, 65, 85] },
+            styles: { fontSize: 10 }
         });
+
+        // ৬. গ্র্যান্ড টোটাল
+        const totalY = doc.lastAutoTable.finalY + 30;
+        doc.setFontSize(14);
+        doc.setTextColor(30, 58, 138);
+        doc.setFont("helvetica", "bold");
+        doc.text(`Grand Total Diesel: ${totalDieselAmount.toLocaleString()} TK`, 40, totalY);
 
         doc.save(`Diesel_Report_${new Date().getTime()}.pdf`);
     };
@@ -120,7 +152,7 @@ const DieselReportDiba = () => {
                     </div>
                 </div>
 
-                {/* Filters */}
+                {/* Filters Section */}
                 <div className="bg-white p-6 rounded-3xl shadow-sm border border-blue-100 mb-8 no-print">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
                         <div className="form-control">
@@ -144,18 +176,19 @@ const DieselReportDiba = () => {
                             <input type="text" value={searchDriver} onChange={(e) => setSearchDriver(e.target.value)} className="input input-bordered border-blue-100 focus:border-blue-500" placeholder="Name..." />
                         </div>
                     </div>
-                    <button onClick={fetchDieselData} className="btn bg-blue-700 hover:bg-blue-800 text-white w-full mt-6 font-bold rounded-xl border-none shadow-lg shadow-blue-100 transition-all">Fetch Data</button>
+                    <button onClick={fetchDieselData} className="btn bg-blue-700 hover:bg-blue-800 text-white w-full mt-6 font-bold rounded-xl border-none shadow-lg shadow-blue-100 transition-all">Search Report</button>
                 </div>
 
+                {/* Report Content */}
                 <div id="report-content">
                     {!hasSearched ? (
-                        <div className="text-center py-20 bg-white rounded-[2rem] border border-dashed border-blue-200">
-                            <p className="text-slate-400 italic">Please select filters and click fetch to view diesel records.</p>
+                        <div className="text-center py-20 bg-white rounded-[2rem] border border-dashed border-blue-200 no-print">
+                            <p className="text-slate-400 italic">Please select filters and click search to view diesel records.</p>
                         </div>
                     ) : (
                         <>
                             {/* Data Table */}
-                            <div className="bg-white rounded-[2rem] shadow-xl overflow-hidden border border-blue-50">
+                            <div className="bg-white rounded-[2rem] shadow-xl overflow-hidden border border-blue-50 mb-8">
                                 <div className="overflow-x-auto">
                                     <table id="diesel-table" className="table w-full text-center">
                                         <thead>
@@ -163,8 +196,8 @@ const DieselReportDiba = () => {
                                                 <th className="py-4">Date</th>
                                                 <th>Depo</th>
                                                 <th>Lorry No</th>
-                                                <th>Driver</th>
-                                                <th>Diesel Amount (TK)</th>
+                                                <th>Driver Name</th>
+                                                <th>Diesel Amount (৳)</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -174,7 +207,7 @@ const DieselReportDiba = () => {
                                                     <td className="text-slate-500 font-medium">{row.dipoName}</td>
                                                     <td className="font-bold text-slate-700">{row.lorryNo}</td>
                                                     <td className="font-medium text-slate-600">{row.driverName || "N/A"}</td>
-                                                    <td className="text-blue-700 font-black text-lg">{Number(row.dieselBabodPabe).toLocaleString()} </td>
+                                                    <td className="text-blue-700 font-black text-lg">{Number(row.dieselBabodPabe).toLocaleString()}</td>
                                                 </tr>
                                             )) : (
                                                 <tr><td colSpan="5" className="py-10 text-slate-400 italic">No records found for this period.</td></tr>
@@ -188,7 +221,7 @@ const DieselReportDiba = () => {
                             {dieselRows.length > 0 && (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10 p-8 bg-white rounded-[2rem] border border-blue-100 shadow-sm">
                                     <div>
-                                        <h3 className="text-lg font-bold text-blue-900 mb-4 border-b pb-2">Depot Summary</h3>
+                                        <h3 className="text-lg font-bold text-blue-900 mb-4 border-b pb-2">Summary by Depot</h3>
                                         <div className="space-y-2">
                                             {mainDepots.map(depot => {
                                                 const label = depot.charAt(0).toUpperCase() + depot.slice(1);

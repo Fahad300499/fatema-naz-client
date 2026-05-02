@@ -68,43 +68,72 @@ const NetSalaryReportImam = () => {
     const downloadPDF = () => {
         const doc = new jsPDF('p', 'pt', 'a4');
         
-        // Header
-        doc.setFontSize(18);
-        doc.setTextColor(13, 148, 136); // Teal-600
-        doc.text("Imam Hossain - Net Salary Report", 40, 45);
-        
-        // Main Table
+        // ১. হেডার সেকশন
+        doc.setFontSize(20);
+        doc.setTextColor(15, 118, 110); // Teal-800
+        doc.setFont("helvetica", "bold");
+        doc.text("Imam Hossain Petrolium", 40, 40);
+
+        // ২. ফিল্টার ইনফো (PDF-এ দেখানোর জন্য)
+        let infoLine = "";
+        const filters = [];
+        if (searchDriver) filters.push(`Driver: ${searchDriver}`);
+        if (searchLorry) filters.push(`Lorry: ${searchLorry}`);
+        if (startDate && endDate) filters.push(`Period: ${startDate} to ${endDate}`);
+        infoLine = filters.join(" | ");
+
+        if (infoLine) {
+            doc.setFontSize(10);
+            doc.setTextColor(100);
+            doc.setFont("helvetica", "normal");
+            doc.text(infoLine, 40, 58);
+        }
+
+        doc.setFontSize(12);
+        doc.setTextColor(0);
+        doc.setFont("helvetica", "bold");
+        doc.text("Net Salary Summary Report", 40, 75);
+
+        // ৩. মেইন টেবিল
         autoTable(doc, { 
             html: '#net-salary-table',
-            startY: 80,
+            startY: infoLine ? 90 : 85,
             theme: 'grid',
-            headStyles: { fillColor: [13, 148, 136] }, // Teal theme
+            headStyles: { fillColor: [13, 148, 136] }, // Teal-600
             styles: { fontSize: 9 },
             margin: { left: 40, right: 40 },
         });
 
+        // ৪. সামারি সেকশন
         let finalY = doc.lastAutoTable.finalY + 30;
+        if (finalY > 700) { doc.addPage(); finalY = 40; }
 
-        // Summary Table
-        const summaryBody = mainDepots.map(depot => {
+        doc.setFontSize(14);
+        doc.setFont("helvetica", "bold");
+        doc.text("Depot Wise Summary", 40, finalY);
+
+        const summaryData = mainDepots.map(depot => {
             const name = depot.charAt(0).toUpperCase() + depot.slice(1);
             return [name, `${depotSummary[name] || 0} Records`];
         });
 
-        summaryBody.push([
-            { content: 'Total Net Salary', styles: { fontStyle: 'bold', fillColor: [240, 253, 250] } }, 
-            { content: `${totalNetAmount.toLocaleString()} BDT`, styles: { fontStyle: 'bold', fillColor: [240, 253, 250] } }
-        ]);
-
         autoTable(doc, {
-            head: [['Depot Summary', 'Count']],
-            body: summaryBody,
-            startY: finalY,
+            head: [['Depot Name', 'Total Records']],
+            body: summaryData,
+            startY: finalY + 10,
             margin: { left: 40 },
-            tableWidth: 300,
-            theme: 'grid',
-            headStyles: { fillColor: [15, 118, 110] }
+            tableWidth: 250,
+            theme: 'striped',
+            headStyles: { fillColor: [51, 65, 85] },
+            styles: { fontSize: 10 }
         });
+
+        // ৫. গ্র্যান্ড টোটাল
+        const totalY = doc.lastAutoTable.finalY + 30;
+        doc.setFontSize(14);
+        doc.setTextColor(15, 118, 110);
+        doc.setFont("helvetica", "bold");
+        doc.text(`Grand Total Net Salary: ${totalNetAmount.toLocaleString()} TK`, 40, totalY);
 
         doc.save(`Net_Salary_Report_${new Date().getTime()}.pdf`);
     };
@@ -133,7 +162,7 @@ const NetSalaryReportImam = () => {
                             <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="input input-bordered border-teal-100 focus:border-teal-500" />
                         </div>
                         <div className="form-control">
-                            <label className="label text-xs font-bold text-slate-500 uppercase">Depot</label>
+                            <label className="label text-xs font-bold text-slate-500 uppercase">Depo</label>
                             <input type="text" value={searchDipo} onChange={(e) => setSearchDipo(e.target.value)} className="input input-bordered border-teal-100 focus:border-teal-500" placeholder="ডিপো..." />
                         </div>
                         <div className="form-control">
@@ -150,13 +179,13 @@ const NetSalaryReportImam = () => {
 
                 <div id="report-content">
                     {!hasSearched ? (
-                        <div className="text-center py-20 bg-white rounded-[2rem] border border-dashed border-teal-200">
+                        <div className="text-center py-20 bg-white rounded-[2rem] border border-dashed border-teal-200 no-print">
                             <p className="text-slate-400 italic">ফিল্টার সেট করে নিট স্যালারি ডাটা লোড করুন।</p>
                         </div>
                     ) : (
                         <>
                             {/* Data Table */}
-                            <div className="bg-white rounded-[2rem] shadow-xl overflow-hidden border border-teal-50">
+                            <div className="bg-white rounded-[2rem] shadow-xl overflow-hidden border border-teal-50 mb-8">
                                 <div className="overflow-x-auto">
                                     <table id="net-salary-table" className="table w-full text-center">
                                         <thead>
@@ -189,7 +218,7 @@ const NetSalaryReportImam = () => {
                             {salaryRows.length > 0 && (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10 p-8 bg-white rounded-[2rem] border border-teal-100 shadow-sm">
                                     <div>
-                                        <h3 className="text-lg font-bold text-teal-900 mb-4 border-b pb-2">Depot Summary (Net)</h3>
+                                        <h3 className="text-lg font-bold text-teal-900 mb-4 border-b pb-2">Depo Summary (Net)</h3>
                                         <div className="space-y-2">
                                             {mainDepots.map(depot => {
                                                 const label = depot.charAt(0).toUpperCase() + depot.slice(1);
@@ -205,7 +234,7 @@ const NetSalaryReportImam = () => {
                                     </div>
                                     <div className="flex flex-col justify-center items-end border-l border-teal-50 pl-6">
                                         <span className="text-slate-500 font-bold uppercase text-xs tracking-widest">Total Net Amount</span>
-                                        <span className="text-4xl font-black text-teal-700">{totalNetAmount.toLocaleString()} ৳</span>
+                                        <span className="text-4xl font-black text-teal-700">{totalNetAmount.toLocaleString()}</span>
                                     </div>
                                 </div>
                             )}
