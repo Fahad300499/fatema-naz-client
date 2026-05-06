@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
+
 const TripHistoryDiba = () => {
     const navigate = useNavigate();
     const [trips, setTrips] = useState([]);
@@ -50,6 +51,7 @@ const TripHistoryDiba = () => {
 
     // --- ক্যালকুলেশনস ---
     const totalTripsCount = filteredRows.length; 
+    const totalPayment2 = filteredRows.reduce((sum, row) => sum + (Number(row.payment2) || 0), 0);
     const totalDiesel = filteredRows.reduce((sum, row) => sum + (Number(row.dieselBabodPabe) || 0), 0);
     const grandTotalDue = filteredRows.reduce((sum, row) => sum + (Number(row.driverTotalReceive) || 0), 0);
     const totalSecurity = filteredRows.reduce((sum, row) => sum + (Number(row.security) || 0), 0);
@@ -66,91 +68,95 @@ const TripHistoryDiba = () => {
 
     const displayOrder = ["Baghabari", "Parbatipur", "Rangpur"];
 
-    const downloadPDF = () => {
-        const doc = new jsPDF('l', 'pt', 'a4');
-        
-        // ১. সার্চ ক্রাইটেরিয়া (সাব-টাইটেল)
-        let searchCriteria = "";
-        if (searchLorry) searchCriteria += `Lorry: ${searchLorry} | `;
-        if (searchDriver) searchCriteria += `Driver: ${searchDriver} | `;
-        if (searchDipo) searchCriteria += `Dipo: ${searchDipo} | `;
-        if (startDate && endDate) searchCriteria += `Period: ${startDate} to ${endDate}`;
+    
+const downloadPDF = () => {
+    const doc = new jsPDF('l', 'pt', 'a4');
 
-        doc.setFontSize(10);
-        doc.setTextColor(100);
-        doc.text(searchCriteria, 40, 30);
+     // ২. মূল টাইটেল
+    doc.setFontSize(10);
+    doc.setTextColor(0);
+    doc.setFont("helvetica", "bold");
+    doc.text("Diba Ratri Filling Station", 40, 50);
+    
+    // ১. সার্চ ক্রাইটেরিয়া (সাব-টাইটেল)
+    let searchCriteria = "";
+    if (searchLorry) searchCriteria += `Lorry: ${searchLorry}- Trip Report  `;
+    if (searchDriver) searchCriteria += `Driver: ${searchDriver}- Trip Report  `;
+    if (searchDipo) searchCriteria += `Dipo: ${searchDipo}- Trip Report  `;
+    if (startDate && endDate) searchCriteria += `Period: ${startDate} to ${endDate}`;
 
-        // ২. মূল টাইটেল
-        doc.setFontSize(18);
-        doc.setTextColor(0);
-        doc.setFont("helvetica", "bold");
-        doc.text("Diba Ratri Filling Station - Trip Report", 40, 50);
+    doc.setFontSize(15);
+    doc.setTextColor(100);
+    doc.text(searchCriteria, 40, 30);
 
-        // ৩. মূল ডাটা টেবিল
-        autoTable(doc, { 
-            html: '#trip-table',
-            startY: 65,
-            theme: 'grid',
-            styles: { fontSize: 8, cellPadding: 3 },
-            headStyles: { fillColor: [30, 41, 59], halign: 'center' },
-            columnStyles: {
-                0: { cellWidth: 60 },
-            },
-            didParseCell: (data) => {
-                data.cell.text = String(data.cell.text).replace('৳', 'TK');
-            }
-        });
+   
 
-        // ৪. সামারি সেকশন
-        let finalY = doc.lastAutoTable.finalY + 30;
-        if (finalY > 450) { 
-            doc.addPage();
-            finalY = 40;
+    // ৩. মূল ডাটা টেবিল
+    autoTable(doc, { 
+        html: '#trip-table',
+        startY: 65,
+        theme: 'grid',
+        styles: { fontSize: 8, cellPadding: 3 },
+        headStyles: { fillColor: [30, 41, 59], halign: 'center' },
+        columnStyles: {
+            0: { cellWidth: 60 }, // Date column width adjust
+        },
+        didParseCell: (data) => {
+            data.cell.text = String(data.cell.text).replace('৳', 'TK');
         }
+    });
 
-        doc.setFontSize(12);
-        doc.setFont("helvetica", "bold");
-        doc.text("Summary Analysis", 40, finalY);
+    // ৪. সামারি সেকশন (টেবিল শেষ হওয়ার পর)
+    let finalY = doc.lastAutoTable.finalY + 30;
 
-        // ৫. বাম পাশের মেইন সামারি টেবিল
-        autoTable(doc, {
-            startY: finalY + 10,
-            margin: { left: 40 },
-            tableWidth: 350,
-            body: [
-                ["Total Trips", `${totalTripsCount} Units`],
-                ["Total Diesel Cost", `${totalDiesel.toLocaleString()} TK`],
-                ["Normal Fine", `${totalNormalFine.toLocaleString()} TK`],
-                ["Extra Fine", `${totalExtraFine.toLocaleString()} TK`],
-                ["Security Amount", `${totalSecurity.toLocaleString()} TK`],
-                ["Driver Net Receivable", `${grandTotalDue.toLocaleString()} TK`],
-            ],
-            theme: 'striped',
-            styles: { fontSize: 10, cellPadding: 5 },
-            columnStyles: { 
-                0: { fontStyle: 'bold', cellWidth: 180 },
-                1: { halign: 'right' }
-            }
-        });
+    // যদি পেজের নিচে জায়গা কম থাকে, তবে নতুন পেজ নিবে
+    if (finalY > 450) { 
+        doc.addPage();
+        finalY = 40;
+    }
 
-        // ৬. ডান পাশের ডিপো সামারি টেবিল
-        autoTable(doc, {
-            startY: finalY + 10,
-            margin: { left: 420 },
-            tableWidth: 200,
-            head: [['Dipo Name', 'Total Trips']],
-            body: displayOrder.map(d => [d, `${dipoCounts[d] || 0} Trips`]),
-            theme: 'grid',
-            headStyles: { fillColor: [71, 85, 105] },
-            styles: { fontSize: 10, cellPadding: 5 },
-            columnStyles: { 
-                1: { halign: 'center' }
-            }
-        });
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("Summary Analysis", 40, finalY);
 
-        doc.save(`Trip_Report_Diba_${new Date().getTime()}.pdf`);
-    };
+    // ৫. বাম পাশের মেইন সামারি টেবিল
+    autoTable(doc, {
+        startY: finalY + 10,
+        margin: { left: 40 },
+        tableWidth: 350,
+        body: [
+            ["Total Trips", `${totalTripsCount} Units`],
+            ["Total Diesel Cost", `${totalDiesel.toLocaleString()} TK`],
+            ["Normal Fine", `${totalNormalFine.toLocaleString()} TK`],
+            ["Extra Fine", `${totalExtraFine.toLocaleString()} TK`],
+            ["Security Amount", `${totalSecurity.toLocaleString()} TK`],
+            ["Driver Net Receivable", `${grandTotalDue.toLocaleString()} TK`],
+        ],
+        theme: 'striped',
+        styles: { fontSize: 10, cellPadding: 5 },
+        columnStyles: { 
+            0: { fontStyle: 'bold', cellWidth: 180 },
+            1: { halign: 'right' }
+        }
+    });
 
+    // ৬. ডান পাশের ডিপো সামারি টেবিল (একই লাইনে রাখার চেষ্টা)
+    autoTable(doc, {
+        startY: finalY + 10,
+        margin: { left: 420 }, // বাম টেবিল শেষ হওয়ার পর দূরত্ব
+        tableWidth: 200,
+        head: [['Dipo Name', 'Total Trips']],
+        body: displayOrder.map(d => [d, `${dipoCounts[d] || 0} Trips`]),
+        theme: 'grid',
+        headStyles: { fillColor: [71, 85, 105] },
+        styles: { fontSize: 10, cellPadding: 5 },
+        columnStyles: { 
+            1: { halign: 'center' }
+        }
+    });
+
+    doc.save(`Trip_Report_${new Date().getTime()}.pdf`);
+};
     return (
         <div className="p-4 md:p-8 bg-[#f8fafc] min-h-screen font-sans">
             <div className="max-w-7xl mx-auto">
@@ -159,12 +165,12 @@ const TripHistoryDiba = () => {
                 <div className="flex flex-col xl:flex-row justify-between items-center mb-8 gap-6">
                     <div className="flex items-center gap-4 no-print">
                         <button onClick={() => navigate(-1)} className="btn btn-circle btn-outline btn-sm">❮</button>
-                        <h1 className="text-3xl font-extrabold text-slate-800">ট্রিপ রিপোর্ট (দিবা)</h1>
+                        <h1 className="text-3xl font-extrabold text-slate-800">ট্রিপ রিপোর্ট</h1>
                     </div>
 
-                    {/* প্রিন্ট মোডে সার্চ ক্রাইটেরিয়া */}
+                    {/* সার্চ ক্রাইটেরিয়া ডিসপ্লে (শুধুমাত্র প্রিন্টে দেখা যাবে) */}
                     <div className="hidden print:block text-left w-full mb-4">
-                        <h1 className="text-2xl font-bold">Fatema Naz Petroleum (Diba)</h1>
+                        <h1 className="text-2xl font-bold">Fatema Naz Petroleum</h1>
                         <p className="text-sm">
                             {searchLorry && `লরী নং: ${searchLorry} | `}
                             {searchDriver && `ড্রাইভার: ${searchDriver} | `}
@@ -177,26 +183,26 @@ const TripHistoryDiba = () => {
                         <div className="flex flex-wrap justify-center gap-3">
                             <div className="stats shadow-sm bg-blue-600 text-white px-4 py-2">
                                 <div className="stat p-0 text-center">
-                                    <div className="stat-title text-[10px] font-bold uppercase text-blue-100">Total Trip</div>
-                                    <div className="stat-value text-lg font-black">{totalTripsCount}</div>
+                                    <div className="stat-title text-[10px] font-bold uppercase text-blue-100">মোট ট্রিপ</div>
+                                    <div className="stat-value text-lg font-black">{totalTripsCount} টি</div>
                                 </div>
                             </div>
                             <div className="stats shadow-sm bg-white border border-blue-100 px-4 py-2">
                                 <div className="stat p-0 text-center">
-                                    <div className="stat-title text-[10px] font-bold uppercase text-blue-400">Total Diesel</div>
-                                    <div className="stat-value text-lg text-blue-600">{totalDiesel.toLocaleString()} </div>
+                                    <div className="stat-title text-[10px] font-bold uppercase text-blue-400">মোট ডিজেল</div>
+                                    <div className="stat-value text-lg text-blue-600">{totalDiesel.toLocaleString()} ৳</div>
                                 </div>
                             </div>
                             <div className="stats shadow-sm bg-white border border-red-100 px-4 py-2">
                                 <div className="stat p-0 text-center">
-                                    <div className="stat-title text-[10px] font-bold uppercase text-red-400">Fine</div>
-                                    <div className="stat-value text-lg text-red-600">{(totalNormalFine + totalExtraFine).toLocaleString()}</div>
+                                    <div className="stat-title text-[10px] font-bold uppercase text-red-400">জরিমানা</div>
+                                    <div className="stat-value text-lg text-red-600">{(totalNormalFine + totalExtraFine).toLocaleString()} ৳</div>
                                 </div>
                             </div>
                             <div className="stats shadow-sm bg-white border border-green-500/20 px-4 py-2">
                                 <div className="stat p-0 text-center">
-                                    <div className="stat-title text-[10px] font-bold uppercase text-green-500">Driver Total</div>
-                                    <div className="stat-value text-lg text-green-600">{grandTotalDue.toLocaleString()} </div>
+                                    <div className="stat-title text-[10px] font-bold uppercase text-green-500">ড্রাইভার মোট</div>
+                                    <div className="stat-value text-lg text-green-600">{grandTotalDue.toLocaleString()} ৳</div>
                                 </div>
                             </div>
                         </div>
@@ -216,7 +222,7 @@ const TripHistoryDiba = () => {
                         </div>
                         <div className="form-control">
                             <label className="label text-xs font-bold text-slate-500 uppercase">Dipo Name</label>
-                            <input type="text" value={searchDipo} onChange={(e) => setSearchDipo(e.target.value)} className="input input-bordered bg-slate-50" placeholder="Dipo..." />
+                            <input type="text" value={searchDipo} onChange={(e) => setSearchDipo(e.target.value)} className="input input-bordered bg-slate-50" placeholder="DIpo..." />
                         </div>
                         <div className="form-control">
                             <label className="label text-xs font-bold text-slate-500 uppercase">Lorry No</label>
@@ -278,7 +284,7 @@ const TripHistoryDiba = () => {
                 {/* টেবিল সেকশন */}
                 {!hasSearched ? (
                     <div className="text-center py-20 bg-white rounded-[2rem] shadow-sm border border-dashed border-gray-300 no-print">
-                        <p className="text-slate-400 text-lg font-medium">ডাটা দেখার জন্য "Search Load" বাটনে ক্লিক করুন।</p>
+                        <p className="text-slate-400 text-lg font-medium">ডাটা দেখার জন্য "সার্চ লোড" বাটনে ক্লিক করুন।</p>
                     </div>
                 ) : (
                     <div className="bg-white rounded-[2rem] shadow-xl overflow-hidden border border-slate-100">
@@ -294,8 +300,8 @@ const TripHistoryDiba = () => {
                                         <th className="bg-orange-800/50">Extra Fine</th>
                                         <th className="bg-purple-900/50">Security</th>
                                         <th>Second Payment</th>
-                                        <th className="bg-blue-900 text-blue-50">Diesel</th>
-                                        <th className="bg-orange-700 text-orange-50">Driver Total</th>
+                                        <th className="bg-blue-900 text-blue-50">Diesel (TK)</th>
+                                        <th className="bg-orange-700 text-orange-50">Driver</th>
                                     </tr>
                                 </thead>
                                 <tbody>

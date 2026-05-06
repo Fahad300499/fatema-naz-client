@@ -71,23 +71,25 @@ const TripHistory = () => {
     
 const downloadPDF = () => {
     const doc = new jsPDF('l', 'pt', 'a4');
+
+     // ২. মূল টাইটেল
+    doc.setFontSize(10);
+    doc.setTextColor(0);
+    doc.setFont("helvetica", "bold");
+    doc.text("Fatema Naz Petroleum", 40, 50);
     
     // ১. সার্চ ক্রাইটেরিয়া (সাব-টাইটেল)
     let searchCriteria = "";
-    if (searchLorry) searchCriteria += `Lorry: ${searchLorry} | `;
-    if (searchDriver) searchCriteria += `Driver: ${searchDriver} | `;
-    if (searchDipo) searchCriteria += `Dipo: ${searchDipo} | `;
+    if (searchLorry) searchCriteria += `Lorry: ${searchLorry}- Trip Report  `;
+    if (searchDriver) searchCriteria += `Driver: ${searchDriver}- Trip Report  `;
+    if (searchDipo) searchCriteria += `Dipo: ${searchDipo}- Trip Report  `;
     if (startDate && endDate) searchCriteria += `Period: ${startDate} to ${endDate}`;
 
-    doc.setFontSize(10);
+    doc.setFontSize(15);
     doc.setTextColor(100);
     doc.text(searchCriteria, 40, 30);
 
-    // ২. মূল টাইটেল
-    doc.setFontSize(18);
-    doc.setTextColor(0);
-    doc.setFont("helvetica", "bold");
-    doc.text("Fatema Naz Petroleum - Trip Report", 40, 50);
+   
 
     // ৩. মূল ডাটা টেবিল
     autoTable(doc, { 

@@ -16,11 +16,19 @@ const ChalanReportSahena = () => {
     const [allData, setAllData] = useState([]); 
     const [filteredData, setFilteredData] = useState([]); 
     const [loading, setLoading] = useState(false);
-    const [hasSearched, setHasSearched] = useState(false); // নতুন স্টেট: প্রথমে ডাটা হাইড রাখার জন্য
+    const [hasSearched, setHasSearched] = useState(false);
+
+    // ডাইনামিক হেডিং লজিক
+    const getDynamicHeading = () => {
+        if (searchDriver) return `Chalan Report - ${searchDriver}`;
+        if (searchLorry) return `Chalan Report - ${searchLorry}`;
+        if (searchDepot) return `Chalan Report - ${searchDepot}`;
+        return "Chalan Report";
+    };
 
     const fetchReport = async () => {
         setLoading(true);
-        setHasSearched(true); // বাটন ক্লিক করলে এটি ট্রু হবে
+        setHasSearched(true);
         try {
             const params = {};
             if (startDate) params.startDate = startDate;
@@ -52,7 +60,6 @@ const ChalanReportSahena = () => {
         }
     };
 
-    // ফিল্টারিং লজিক (শুধুমাত্র যখন ডাটা অলরেডি লোড হয়েছে)
     useEffect(() => {
         const result = allData.filter(item => {
             const matchesLorry = !searchLorry || (item.carNo || item.lorryNo)?.toLowerCase().includes(searchLorry.toLowerCase());
@@ -88,89 +95,77 @@ const ChalanReportSahena = () => {
         return summary;
     };
 
-  const downloadPDF = () => {
-    const doc = new jsPDF();
-    const summaryData = getAdvancedSummary();
-    
-    // যদি summaryData.GrandTotal কাজ না করে, তবে সরাসরি filteredData.length নিন
-    const totalTrips = filteredData.length;
+    const downloadPDF = () => {
+        const doc = new jsPDF();
+        const summaryData = getAdvancedSummary();
+        const totalTrips = filteredData.length;
+        const dynamicHeading = getDynamicHeading(); // ডাইনামিক টাইটেল কল করা হলো
 
-    // শিরোনাম
-    doc.setFontSize(20);
-    doc.setTextColor(40, 40, 40);
-    doc.text("M/S Sahena EnterPrise", 105, 15, { align: "center" });
-    
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    const dateRange = (startDate && endDate) ? `${startDate} to ${endDate}` : "All Records";
-    doc.text(`Chalan Report`, 105, 22, { align: "center" });
+        doc.setFontSize(10);
+        doc.setTextColor(40, 40, 40);
+        doc.text("M/S Shahana Enterprise", 105, 15, { align: "center" });
+        
+        doc.setFontSize(15);
+        doc.setTextColor(100);
+        doc.text(dynamicHeading, 105, 22, { align: "center" });
 
-    // ১. মূল ডাটা টেবিল
-    const tableColumn = ["Sl.", "Date", "Lorry No", "Driver", "Depot", "Product", "Chalan No"];
-    const tableRows = filteredData.map((item, index) => [
-        index + 1, 
-        item.date, 
-        item.carNo || item.lorryNo, 
-        item.driver, 
-        item.displayDepot, 
-        item.product, 
-        item.chalanNo
-    ]);
+        const tableColumn = ["Sl.", "Date", "Lorry No", "Driver", "Depot", "Product", "Chalan No"];
+        const tableRows = filteredData.map((item, index) => [
+            index + 1, 
+            item.date, 
+            item.carNo || item.lorryNo, 
+            item.driver, 
+            item.displayDepot, 
+            item.product, 
+            item.chalanNo
+        ]);
 
-    autoTable(doc, {
-        head: [tableColumn],
-        body: tableRows,
-        startY: 30,
-        theme: 'striped',
-        headStyles: { fillColor: [44, 62, 80], halign: 'center' },
-        styles: { fontSize: 8, halign: 'center' },
-        margin: { top: 30 }
-    });
-
-    // ২. ট্রিপ সামারি সেকশন
-    let finalY = doc.lastAutoTable.finalY + 15;
-    
-    if (finalY > 240) {
-        doc.addPage();
-        finalY = 20;
-    }
-
-    doc.setFontSize(14);
-    doc.setTextColor(44, 62, 80);
-    doc.text("TRIP SUMMARY REPORT", 14, finalY);
-
-    // সামারি টেবিলের ডাটা তৈরি (GrandTotal কী বাদ দিয়ে)
-    const summaryRows = Object.entries(summaryData)
-        .filter(([key]) => key !== "GrandTotal") 
-        .map(([depo, data]) => {
-            const prodText = Object.entries(data.products)
-                .map(([p, c]) => `${p}: ${c}`)
-                .join(", ");
-            return [depo, data.total, prodText || "No Data"];
+        autoTable(doc, {
+            head: [tableColumn],
+            body: tableRows,
+            startY: 30,
+            theme: 'striped',
+            headStyles: { fillColor: [44, 62, 80], halign: 'center' },
+            styles: { fontSize: 8, halign: 'center' },
+            margin: { top: 30 }
         });
 
-    // এখানে totalTrips এর মান সরাসরি ইনজেক্ট করা হচ্ছে
-    summaryRows.push([
-        { content: 'TOTAL TRIPS', styles: { fontStyle: 'bold', fillColor: [230, 230, 230] } },
-        { content: totalTrips.toString(), styles: { fontStyle: 'bold', fillColor: [230, 230, 230], halign: 'center' } },
-        { content: '', styles: { fillColor: [230, 230, 230] } }
-    ]);
+        let finalY = doc.lastAutoTable.finalY + 15;
+        if (finalY > 240) { doc.addPage(); finalY = 20; }
 
-    autoTable(doc, {
-        head: [["Depot Name", "Total Trips", "Product Breakdown"]],
-        body: summaryRows,
-        startY: finalY + 5,
-        theme: 'grid',
-        headStyles: { fillColor: [52, 152, 219] },
-        styles: { fontSize: 9, cellPadding: 4 },
-        columnStyles: {
-            1: { halign: 'center' }
-        }
-    });
+        doc.setFontSize(14);
+        doc.setTextColor(44, 62, 80);
+        doc.text("TRIP SUMMARY REPORT", 14, finalY);
 
-    const timestamp = new Date().toLocaleDateString();
-    doc.save(`Chalan_Report_${timestamp}.pdf`);
-};
+        const summaryRows = Object.entries(summaryData)
+            .filter(([key]) => key !== "GrandTotal") 
+            .map(([depo, data]) => {
+                const prodText = Object.entries(data.products)
+                    .map(([p, c]) => `${p}: ${c}`)
+                    .join(", ");
+                return [depo, data.total, prodText || "No Data"];
+            });
+
+        summaryRows.push([
+            { content: 'TOTAL TRIPS', styles: { fontStyle: 'bold', fillColor: [230, 230, 230] } },
+            { content: totalTrips.toString(), styles: { fontStyle: 'bold', fillColor: [230, 230, 230], halign: 'center' } },
+            { content: '', styles: { fillColor: [230, 230, 230] } }
+        ]);
+
+        autoTable(doc, {
+            head: [["Depot Name", "Total Trips", "Product Breakdown"]],
+            body: summaryRows,
+            startY: finalY + 5,
+            theme: 'grid',
+            headStyles: { fillColor: [52, 152, 219] },
+            styles: { fontSize: 9, cellPadding: 4 },
+            columnStyles: { 1: { halign: 'center' } }
+        });
+
+        const timestamp = new Date().toLocaleDateString();
+        // ফাইল নেম ডাইনামিক করা হয়েছে
+        doc.save(`${dynamicHeading.replace(/\s+/g, '_')}_${timestamp}.pdf`);
+    };
 
     return (
         <div className="p-4 md:p-10 bg-[#f1f5f9] min-h-screen font-sans">
@@ -180,7 +175,10 @@ const ChalanReportSahena = () => {
                 <div className="flex justify-between items-center mb-8 no-print">
                     <div className="flex items-center gap-4">
                         <button onClick={() => navigate(-1)} className="btn btn-circle btn-outline btn-sm">❮</button>
-                        <h1 className="text-2xl font-black text-slate-800 tracking-tight">Chalan Report</h1>
+                        {/* এখানে ডাইনামিক হেডিং বসানো হয়েছে */}
+                        <h1 className="text-2xl font-black text-slate-800 tracking-tight">
+                            {getDynamicHeading()}
+                        </h1>
                     </div>
                     <Link to="/" className="btn btn-sm btn-ghost bg-white shadow-sm border-slate-200">হোম পেজ</Link>
                 </div>
@@ -214,9 +212,8 @@ const ChalanReportSahena = () => {
                     </button>
                 </div>
 
-                {/* Conditional Rendering */}
+                {/* Content rendering... */}
                 {!hasSearched ? (
-                    // শুরুতে যা দেখাবে
                     <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-slate-200">
                         <div className="text-5xl mb-4">📊</div>
                         <h2 className="text-xl font-bold text-slate-500">রিপোর্ট দেখতে ওপরের ফিল্টার ব্যবহার করে বাটন ক্লিক করুন</h2>
@@ -249,13 +246,13 @@ const ChalanReportSahena = () => {
                         {/* Table */}
                         <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
                             <div className="overflow-x-auto">
-                                <table className="table w-full">
-                                    <thead className="bg-slate-800 text-white text-center">
+                                <table className="table w-full text-center">
+                                    <thead className="bg-slate-800 text-white">
                                         <tr>
                                             <th>Sl.</th><th>তারিখ</th><th>লরী নম্বর</th><th>ড্রাইভার</th><th>ডিপো</th><th>প্রোডাক্ট</th><th>চালান</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="text-center">
+                                    <tbody>
                                         {filteredData.map((item, index) => (
                                             <tr key={index} className="hover:bg-blue-50 transition-colors">
                                                 <td className="font-medium text-slate-400">{index + 1}</td>
@@ -272,7 +269,7 @@ const ChalanReportSahena = () => {
                             </div>
                         </div>
 
-                        {/* Footer Actions */}
+                        {/* Actions */}
                         <div className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-slate-200 no-print">
                             <div className="text-slate-500 font-bold italic">মোট ডাটা: {filteredData.length} টি</div>
                             <div className="flex gap-4">
@@ -282,7 +279,7 @@ const ChalanReportSahena = () => {
                         </div>
                     </div>
                 ) : (
-                    <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-red-200 text-red-400 font-bold">দুঃখিত, কোনো তথ্য খুঁজে পাওয়া যায়নি।</div>
+                    <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-red-200 text-red-400 font-bold">দুঃখিত, কোনো তথ্য খুঁজে পাওয়া যায়নি।</div>
                 )}
             </div>
         </div>
