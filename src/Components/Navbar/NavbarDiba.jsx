@@ -149,6 +149,43 @@ const NavbarDiba = () => {
           </Link>
         )}
 
+
+
+        {/* কার্ড ৮:  */}
+                        <Link to="/short-calculation-diba" className="w-full">
+                          <div className={`group relative p-6 rounded-3xl transition-all duration-300 border-2 overflow-hidden h-full
+                            ${isActive('/lory-work') ? 'border-indigo-600 bg-indigo-50 shadow-xl scale-105' : 'border-gray-200 bg-white hover:border-indigo-200 hover:shadow-2xl hover:-translate-y-1'}`}>
+                            <div className="flex flex-col items-center text-center relative z-10">
+                              <div className={`mb-4 p-4 rounded-2xl transition-all ${isActive('/lory-work') ? 'bg-indigo-600 text-white shadow-lg' : 'bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white'}`}>
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                              </div>
+                              <h3 className="text-xl font-bold text-gray-800 leading-tight">Short <br /> Calculation</h3>
+                            </div>
+                          </div>
+                        </Link>
+                
+                
+                         {/* কার্ড ৯: Short History (শুধু অ্যাডমিন) */}
+                        {isAdmin && (
+                          <Link to="/short-history-diba" className="w-full">
+                            <div className={`group relative p-6 rounded-3xl transition-all duration-300 border-2 overflow-hidden h-full
+                              ${isActive('/lory-work-history') ? 'border-indigo-600 bg-indigo-50 shadow-xl scale-105' : 'border-gray-200 bg-white hover:border-indigo-200 hover:shadow-2xl hover:-translate-y-1'}`}>
+                               <div className="flex flex-col items-center text-center relative z-10">
+                                  <div className={`mb-4 p-4 rounded-2xl transition-all ${isActive('/lory-work-history') ? 'bg-indigo-600 text-white shadow-lg' : 'bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white'}`}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                  </div>
+                                  <h3 className="text-xl font-bold text-gray-800 leading-tight">Short <br /> History</h3>
+                               </div>
+                            </div>
+                          </Link>
+                        )}
+
+
+
       </div>
     </nav>
   );

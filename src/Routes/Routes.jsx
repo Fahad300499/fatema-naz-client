@@ -64,6 +64,14 @@ import GrossSalaryReportImam from "../Pages/GrossSalaryReportImam";
 import NetSalaryReportImam from "../Pages/NetSalaryReportImam";
 import GrossSalaryReportSahena from "../Pages/GrossSalaryReportSahena";
 import NetSalaryReportSahena from "../Pages/NetSalaryReportSahena";
+import ShortCalculation from "../Pages/ShortCalculation";
+import ShortHistory from "../Pages/ShortHistory";
+import ShortCalculationImam from "../Pages/ShortCalculationImam";
+import ShortHistoryImam from "../Pages/ShortHistoryImam";
+import ShortCalculationSahena from "../Pages/ShortCalculationSahena";
+import ShortHistorySahena from "../Pages/ShortHistorySahena";
+import ShortCalculationDiba from "../Pages/ShortCalculationDiba";
+import ShortHistoryDiba from "../Pages/ShortHistoryDiba";
 
 
 export const router = createBrowserRouter([
@@ -212,6 +220,64 @@ export const router = createBrowserRouter([
           path:"/lory-work-history-diba",
           element: <LoryWorkHistoryDiba></LoryWorkHistoryDiba>
         },
+
+
+
+
+         {
+          path:"/short-calculation",
+          element: <ShortCalculation></ShortCalculation>
+        },
+        {
+          path:"/short-history",
+          element: <ShortHistory></ShortHistory>
+        },
+
+
+
+
+
+         {
+          path:"/short-calculation-imam",
+          element: <ShortCalculationImam></ShortCalculationImam>
+        },
+        {
+          path:"/short-history-imam",
+          element: <ShortHistoryImam></ShortHistoryImam>
+        },
+
+
+
+
+
+        {
+          path:"/short-calculation-sahena",
+          element: <ShortCalculationSahena></ShortCalculationSahena>
+        },
+        {
+          path:"/short-history-sahena",
+          element: <ShortHistorySahena></ShortHistorySahena>
+        },
+
+
+
+
+
+        {
+          path:"/short-calculation-diba",
+          element: <ShortCalculationDiba></ShortCalculationDiba>
+        },
+        {
+          path:"/short-history-diba",
+          element: <ShortHistoryDiba></ShortHistoryDiba>
+        },
+
+
+
+
+
+
+
      
         {
           path:"/security-password",
