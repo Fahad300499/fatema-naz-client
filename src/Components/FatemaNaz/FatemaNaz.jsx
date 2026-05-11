@@ -66,7 +66,8 @@ const FatemaNaz = () => {
         return navigate(path);
     }
 
-    // ৩. যদি অ্যাডমিন না হয় (অর্থাৎ স্টাফ), তবে মাস্টার পাসওয়ার্ড চাইবে
+    
+    // ৩. যদি অ্যাডমিন না হয় (অর্থাৎ স্টাফ) তবে মাস্টার পাসওয়ার্ড চাইবে
     const { value: password } = await Swal.fire({
         title: 'নিরাপত্তা যাচাই',
         input: 'password',
