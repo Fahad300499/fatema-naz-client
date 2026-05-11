@@ -59,7 +59,8 @@ import DieselReportSahena from "../Pages/DieselReportSahena";
 import NetSalaryReport from "../Pages/NetSalaryReport";
 import GrossSalaryReport from "../Pages/GrossSalaryReport";
 import GrossSalaryReportDiba from "../Pages/GrossSalaryReportDiba";
-import NetSalaryReportDiba from "../Pages/NetsalaryReportDiba";
+
+
 import GrossSalaryReportImam from "../Pages/GrossSalaryReportImam";
 import NetSalaryReportImam from "../Pages/NetSalaryReportImam";
 import GrossSalaryReportSahena from "../Pages/GrossSalaryReportSahena";
@@ -72,6 +73,7 @@ import ShortCalculationSahena from "../Pages/ShortCalculationSahena";
 import ShortHistorySahena from "../Pages/ShortHistorySahena";
 import ShortCalculationDiba from "../Pages/ShortCalculationDiba";
 import ShortHistoryDiba from "../Pages/ShortHistoryDiba";
+import NetSalaryReportDiba from "../Pages/NetSalaryReportDiba";
 
 
 export const router = createBrowserRouter([
