@@ -63,6 +63,8 @@ const ShortCalculation = () => {
             };
         });
 
+
+        
         const finalSubmission = { 
             sheetTitle: data.sheetTitle,
             rows: processedRows, 
