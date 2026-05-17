@@ -74,6 +74,9 @@ import ShortHistorySahena from "../Pages/ShortHistorySahena";
 import ShortCalculationDiba from "../Pages/ShortCalculationDiba";
 import ShortHistoryDiba from "../Pages/ShortHistoryDiba";
 import NetSalaryReportDiba from "../Pages/NetSalaryReportDiba";
+import UpdateLoryImam from "../Pages/UpdateLoryImam";
+import UpdateLorySahena from "../Pages/UpdateLorySahena";
+import UpdateLoryDiba from "../Pages/UpdateLoryDiba";
 
 
 export const router = createBrowserRouter([
@@ -289,10 +292,38 @@ export const router = createBrowserRouter([
           path:"/change-role",
           element: <ChangeRole></ChangeRole>
         },
+
+
+
+
+
+
+
+
         {
           path:"/edit-lory/:id",
           element: <UpdateLory></UpdateLory>
         },
+
+        {
+          path:"/edit-lory-imam/:id",
+          element: <UpdateLoryImam></UpdateLoryImam>
+        },
+
+        {
+          path:"/edit-lory-sahena/:id",
+          element: <UpdateLorySahena></UpdateLorySahena>
+        },
+
+        {
+          path:"/edit-lory-diba/:id",
+          element: <UpdateLoryDiba></UpdateLoryDiba>
+        },
+
+
+
+
+
 
 
 

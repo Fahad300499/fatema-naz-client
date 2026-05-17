@@ -201,7 +201,7 @@ const TotalLorySahena = () => {
                             </button>
 
                             <button
-                                onClick={() => navigate(`/edit-lory/${number}`)}
+                                onClick={() => navigate(`/edit-lory-sahena/${number}`)}
                                 className="w-full mt-2 py-3 border-2 border-slate-900 text-slate-900 rounded-xl font-bold text-sm hover:bg-slate-900 hover:text-white transition-all duration-200"
                             >
                                 Edit Documents
