@@ -79,7 +79,7 @@ const NavbarImam = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
                   </div>
-                  <h3 className="text-xl font-bold text-gray-800 leading-tight">Total Lory Of <br /> Fatema Naz</h3>
+                  <h3 className="text-xl font-bold text-gray-800 leading-tight">Total Lory Of <br /> Imam Hossain</h3>
                </div>
             </div>
           </Link>
