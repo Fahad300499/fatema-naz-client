@@ -8,11 +8,11 @@ const ShortCalculationImam = () => {
     const { register, control, handleSubmit, watch, reset } = useForm({
         defaultValues: {
             sheetTitle: "Imam Hossain Short Calculation",
-            rows: Array.from({ length: 10 }).map(() => ({
+            rows: Array.from({ length: 25 }).map(() => ({
                 deliverDate: "",
                 place: "",
                 product: "HOBC",
-                lorryNo: "", // এখানে লরি সংখ্যা ইনপুট হবে
+                lorryNo: "", 
                 allowance: 0,
                 receivingDate: "",
                 shortQty: 0,
@@ -24,10 +24,8 @@ const ShortCalculationImam = () => {
     const { fields } = useFieldArray({ control, name: "rows" });
     const watchRows = watch("rows");
 
-    // আপডেট করা ক্যালকুলেশন লজিক
-    const calculateRowData = (index) => {
-        const row = watchRows[index];
-        
+    // ক্যালকুলেশন লজিক (সরাসরি রো অবজেক্ট পাস করার ব্যবস্থা করা হয়েছে)
+    const calculateRowData = (row) => {
         const lorryCount = Number(row?.lorryNo) || 0;
         const allowance = Number(row?.allowance) || 0;
         const shortQty = Number(row?.shortQty) || 0;
@@ -46,17 +44,34 @@ const ShortCalculationImam = () => {
     };
 
     const onSubmit = async (data) => {
-        const filledRows = data.rows.filter(row => row.deliverDate !== "" || row.lorryNo !== "");
+        // শুধুমাত্র যে রো গুলোতে ডাটা এন্ট্রি দেওয়া হয়েছে সেগুলো ফিল্টার করা
+        // এবং সাথে useFieldArray এর নিজস্ব ইউনিক id-টি ট্র্যাক করা
+        const filledRows = data.rows
+            .map((row, originalIndex) => ({
+                ...row,
+                // useFieldArray এর জেনারেট করা আইডি অথবা নতুন ইউনিক আইডি ব্যাকআপ হিসেবে
+                id: fields[originalIndex]?.id || `row-${Date.now()}-${originalIndex}` 
+            }))
+            .filter(row => row.deliverDate !== "" || row.lorryNo !== "");
 
         if (filledRows.length === 0) {
-            alert("⚠️ কোনো ডাটা ইনপুট দেওয়া হয়নি!");
+            alert("⚠️ কোনো ডাটা ইনপুট দেওয়া হয়নি!");
             return;
         }
 
-        const processedRows = filledRows.map((row, index) => {
-            const calcs = calculateRowData(index);
+        // প্রসেসড রো-তে আইডি এবং সঠিক ক্যালকুলেশন ডেটা ম্যাপ করা
+        const processedRows = filledRows.map((row) => {
+            const calcs = calculateRowData(row); // এখানে সরাসরি সম্পূর্ণ রো অবজেক্ট পাঠানো হচ্ছে
             return {
-                ...row,
+                rowId: row.id, // আপনার ডাটাবেজের জন্য আলাদা প্রোপার্টিতে আইডি সেট করা হলো
+                deliverDate: row.deliverDate,
+                place: row.place,
+                product: row.product,
+                lorryNo: row.lorryNo,
+                allowance: row.allowance,
+                receivingDate: row.receivingDate,
+                shortQty: row.shortQty,
+                rate: row.rate,
                 totalAllowance: calcs.totalAllowance,
                 difference: calcs.difference,
                 finalTotal: calcs.finalTotal
@@ -78,10 +93,10 @@ const ShortCalculationImam = () => {
             });
 
             if (response.ok) {
-                alert(`✅ সফলভাবে ${processedRows.length} টি রেকর্ড সেভ হয়েছে!`);
+                alert(`✅ সফলভাবে ${processedRows.length} টি রেকর্ড সেভ হয়েছে!`);
                 reset();
             } else {
-                alert("❌ সেভ করতে সমস্যা হয়েছে!");
+                alert("❌ সেভ করতে সমস্যা হয়েছে!");
             }
         } catch (error) {
             alert("❌ সার্ভার কানেক্ট করা যাচ্ছে না!");
@@ -116,7 +131,8 @@ const ShortCalculationImam = () => {
                         </thead>
                         <tbody>
                             {fields.map((field, index) => {
-                                const { totalAllowance, difference, finalTotal } = calculateRowData(index);
+                                // রিয়েল-টাইম UI ক্যালকুলেশনের জন্য watchRows[index] পাঠানো হচ্ছে
+                                const { totalAllowance, difference, finalTotal } = calculateRowData(watchRows?.[index]);
                                 return (
                                     <tr key={field.id} className="hover border-b border-slate-200">
                                         <td>{index + 1}</td>
@@ -127,7 +143,7 @@ const ShortCalculationImam = () => {
                                                 <option value="HOBC">HOBC</option>
                                                 <option value="MS">MS</option>
                                                 <option value="DSL">HSD</option>
-                                                <option value="DSL">DIESEL</option>
+                                                <option value="DSL">SKO</option>
                                             </select>
                                         </td>
                                         <td><input type="number" {...register(`rows.${index}.lorryNo`)} className="input input-bordered input-xs w-12 font-bold" /></td>

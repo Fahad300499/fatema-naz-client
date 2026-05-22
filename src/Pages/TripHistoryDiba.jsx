@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
+import { Link } from 'react-router'; 
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-
+import axios from 'axios'; 
 
 const TripHistoryDiba = () => {
     const navigate = useNavigate();
@@ -34,12 +35,20 @@ const TripHistoryDiba = () => {
         }
     };
 
+    // --- অল রো প্রসেসিং (আইডি হ্যান্ডলিং ফিক্সড) ---
     const allRows = (trips || []).flatMap(trip => 
-        (trip.rows || []).map(row => ({
-            ...row,
-            date: trip.date,
-            dipoName: trip.dipoName
-        }))
+        (trip.rows || []).map((row, originalIdx) => {
+            // যদি রো-এর নিজস্ব কোনো আইডি না থাকে, তবে একটি আইডেন্টিফায়ার তৈরি হবে
+            const fallbackId = row._id || row.id || `idx-${originalIdx}`;
+            return {
+                ...row,
+                _id: fallbackId, 
+                parentTripId: trip._id, 
+                originalRowIndex: originalIdx, 
+                date: trip.date,
+                dipoName: trip.dipoName
+            };
+        })
     );
 
     const filteredRows = allRows.filter(row => {
@@ -48,6 +57,27 @@ const TripHistoryDiba = () => {
         const matchesDipo = !searchDipo || row.dipoName?.toLowerCase().includes(searchDipo.toLowerCase());
         return matchesLorry && matchesDriver && matchesDipo;
     });
+
+    // --- ডিলিট হ্যান্ডলার ফাংশন ---
+    const handleDeleteRow = async (targetRow) => {
+    if (!window.confirm("আপনি কি নিশ্চিতভাবে এই ট্রিপের এন্ট্রিটি ডিলিট করতে চান?")) return;
+
+    try {
+        const targetId = targetRow._id; // এটি আইডি অথবা 'idx-0' ফরমেটে যাবে
+        
+        // ব্যাকএন্ডে ডিলিট রিকোয়েস্ট পাঠানো
+        await axios.delete(`https://api.ashrafulenterprise.com/trips-diba/${targetRow.parentTripId}/row/${targetId}`);
+
+        // ডিলিট সফল হলে ডাটাবেজ থেকে ফ্রেশ ডাটা আবার লোড করা
+        // এতে ইনডেক্স উলটপালট হওয়ার ভয় থাকে না
+        await fetchTrips(); 
+        
+        alert("এন্ট্রিটি সফলভাবে ডিলিট করা হয়েছে।");
+    } catch (error) {
+        console.error("Delete Error:", error);
+        alert("ডাটাবেজ থেকে ডিলিট করতে সমস্যা হয়েছে। দয়া করে ব্যাকএন্ড চেক করুন।");
+    }
+};
 
     // --- ক্যালকুলেশনস ---
     const totalTripsCount = filteredRows.length; 
@@ -67,96 +97,88 @@ const TripHistoryDiba = () => {
     }, {});
 
     const displayOrder = ["Baghabari", "Parbatipur", "Rangpur"];
-
     
-const downloadPDF = () => {
-    const doc = new jsPDF('l', 'pt', 'a4');
+    const downloadPDF = () => {
+        const doc = new jsPDF('l', 'pt', 'a4');
 
-     // ২. মূল টাইটেল
-    doc.setFontSize(10);
-    doc.setTextColor(0);
-    doc.setFont("helvetica", "bold");
-    doc.text("Diba Ratri Filling Station", 40, 50);
-    
-    // ১. সার্চ ক্রাইটেরিয়া (সাব-টাইটেল)
-    let searchCriteria = "";
-    if (searchLorry) searchCriteria += `Lorry: ${searchLorry}- Trip Report  `;
-    if (searchDriver) searchCriteria += `Driver: ${searchDriver}- Trip Report  `;
-    if (searchDipo) searchCriteria += `Dipo: ${searchDipo}- Trip Report  `;
-    if (startDate && endDate) searchCriteria += `Period: ${startDate} to ${endDate}`;
+        doc.setFontSize(10);
+        doc.setTextColor(0);
+        doc.setFont("helvetica", "bold");
+        doc.text("Fatema Naz Petroleum", 40, 50);
+        
+        let searchCriteria = "Trip Report";
+        if (searchLorry) searchCriteria += ` | Lorry: ${searchLorry}`;
+        if (searchDriver) searchCriteria += ` | Driver: ${searchDriver}`;
+        if (searchDipo) searchCriteria += ` | Dipo: ${searchDipo}`;
+        if (startDate && endDate) searchCriteria += ` | Period: ${startDate} to ${endDate}`;
 
-    doc.setFontSize(15);
-    doc.setTextColor(100);
-    doc.text(searchCriteria, 40, 30);
+        doc.setFontSize(14);
+        doc.setTextColor(100);
+        doc.text(searchCriteria, 40, 32);
 
-   
+        autoTable(doc, { 
+            html: '#trip-table',
+            startY: 65,
+            theme: 'grid',
+            styles: { fontSize: 8, cellPadding: 4, halign: 'center' },
+            headStyles: { fillColor: [30, 41, 59], halign: 'center' },
+            columnStyles: {
+                0: { cellWidth: 60 },
+            },
+            columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 
+            didParseCell: (data) => {
+                data.cell.text = String(data.cell.text).replace('৳', 'TK');
+            }
+        });
 
-    // ৩. মূল ডাটা টেবিল
-    autoTable(doc, { 
-        html: '#trip-table',
-        startY: 65,
-        theme: 'grid',
-        styles: { fontSize: 8, cellPadding: 3 },
-        headStyles: { fillColor: [30, 41, 59], halign: 'center' },
-        columnStyles: {
-            0: { cellWidth: 60 }, // Date column width adjust
-        },
-        didParseCell: (data) => {
-            data.cell.text = String(data.cell.text).replace('৳', 'TK');
+        let finalY = doc.lastAutoTable.finalY + 30;
+
+        if (finalY > 450) { 
+            doc.addPage();
+            finalY = 40;
         }
-    });
 
-    // ৪. সামারি সেকশন (টেবিল শেষ হওয়ার পর)
-    let finalY = doc.lastAutoTable.finalY + 30;
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.text("Summary Analysis", 40, finalY);
 
-    // যদি পেজের নিচে জায়গা কম থাকে, তবে নতুন পেজ নিবে
-    if (finalY > 450) { 
-        doc.addPage();
-        finalY = 40;
-    }
+        autoTable(doc, {
+            startY: finalY + 10,
+            margin: { left: 40 },
+            tableWidth: 350,
+            body: [
+                ["Total Trips", `${totalTripsCount} Units`],
+                ["Total Diesel Cost", `${totalDiesel.toLocaleString()} TK`],
+                ["Normal Fine", `${totalNormalFine.toLocaleString()} TK`],
+                ["Extra Fine", `${totalExtraFine.toLocaleString()} TK`],
+                ["Security Amount", `${totalSecurity.toLocaleString()} TK`],
+                ["Driver Net Receivable", `${grandTotalDue.toLocaleString()} TK`],
+            ],
+            theme: 'striped',
+            styles: { fontSize: 10, cellPadding: 5 },
+            columnStyles: { 
+                0: { fontStyle: 'bold', cellWidth: 180 },
+                1: { halign: 'right' }
+            }
+        });
 
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "bold");
-    doc.text("Summary Analysis", 40, finalY);
+        autoTable(doc, {
+            startY: finalY + 10,
+            margin: { left: 420 }, 
+            tableWidth: 200,
+            head: [['Dipo Name', 'Total Trips']],
+            body: displayOrder.map(d => [d, `${dipoCounts[d] || 0} Trips`]),
+            theme: 'grid',
+            headStyles: { fillColor: [71, 85, 105] },
+            styles: { fontSize: 10, cellPadding: 5 },
+            columnStyles: { 
+                1: { halign: 'center' }
+            }
+        });
 
-    // ৫. বাম পাশের মেইন সামারি টেবিল
-    autoTable(doc, {
-        startY: finalY + 10,
-        margin: { left: 40 },
-        tableWidth: 350,
-        body: [
-            ["Total Trips", `${totalTripsCount} Units`],
-            ["Total Diesel Cost", `${totalDiesel.toLocaleString()} TK`],
-            ["Normal Fine", `${totalNormalFine.toLocaleString()} TK`],
-            ["Extra Fine", `${totalExtraFine.toLocaleString()} TK`],
-            ["Security Amount", `${totalSecurity.toLocaleString()} TK`],
-            ["Driver Net Receivable", `${grandTotalDue.toLocaleString()} TK`],
-        ],
-        theme: 'striped',
-        styles: { fontSize: 10, cellPadding: 5 },
-        columnStyles: { 
-            0: { fontStyle: 'bold', cellWidth: 180 },
-            1: { halign: 'right' }
-        }
-    });
+        doc.save(`Trip_Report_${new Date().getTime()}.pdf`);
+    };
 
-    // ৬. ডান পাশের ডিপো সামারি টেবিল (একই লাইনে রাখার চেষ্টা)
-    autoTable(doc, {
-        startY: finalY + 10,
-        margin: { left: 420 }, // বাম টেবিল শেষ হওয়ার পর দূরত্ব
-        tableWidth: 200,
-        head: [['Dipo Name', 'Total Trips']],
-        body: displayOrder.map(d => [d, `${dipoCounts[d] || 0} Trips`]),
-        theme: 'grid',
-        headStyles: { fillColor: [71, 85, 105] },
-        styles: { fontSize: 10, cellPadding: 5 },
-        columnStyles: { 
-            1: { halign: 'center' }
-        }
-    });
-
-    doc.save(`Trip_Report_${new Date().getTime()}.pdf`);
-};
     return (
         <div className="p-4 md:p-8 bg-[#f8fafc] min-h-screen font-sans">
             <div className="max-w-7xl mx-auto">
@@ -168,7 +190,6 @@ const downloadPDF = () => {
                         <h1 className="text-3xl font-extrabold text-slate-800">ট্রিপ রিপোর্ট</h1>
                     </div>
 
-                    {/* সার্চ ক্রাইটেরিয়া ডিসপ্লে (শুধুমাত্র প্রিন্টে দেখা যাবে) */}
                     <div className="hidden print:block text-left w-full mb-4">
                         <h1 className="text-2xl font-bold">Fatema Naz Petroleum</h1>
                         <p className="text-sm">
@@ -222,7 +243,7 @@ const downloadPDF = () => {
                         </div>
                         <div className="form-control">
                             <label className="label text-xs font-bold text-slate-500 uppercase">Dipo Name</label>
-                            <input type="text" value={searchDipo} onChange={(e) => setSearchDipo(e.target.value)} className="input input-bordered bg-slate-50" placeholder="DIpo..." />
+                            <input type="text" value={searchDipo} onChange={(e) => setSearchDipo(e.target.value)} className="input input-bordered bg-slate-50" placeholder="Dipo..." />
                         </div>
                         <div className="form-control">
                             <label className="label text-xs font-bold text-slate-500 uppercase">Lorry No</label>
@@ -296,17 +317,18 @@ const downloadPDF = () => {
                                         <th>Dipo</th>
                                         <th>Lorry No</th>
                                         <th>Driver</th>
-                                        <th className="bg-red-900/50">Fine</th>
-                                        <th className="bg-orange-800/50">Extra Fine</th>
-                                        <th className="bg-purple-900/50">Security</th>
+                                        <th>Fine</th>
+                                        <th>Extra Fine</th>
+                                        <th>Security</th>
                                         <th>Second Payment</th>
-                                        <th className="bg-blue-900 text-blue-50">Diesel (TK)</th>
-                                        <th className="bg-orange-700 text-orange-50">Driver</th>
+                                        <th>Diesel (TK)</th>
+                                        <th>Driver</th>
+                                        <th className="no-print">Action</th> 
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {filteredRows.length > 0 ? filteredRows.map((row, idx) => (
-                                        <tr key={idx} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                                        <tr key={row._id || idx} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
                                             <td className="text-[11px] font-medium">{row.date}</td>
                                             <td className="text-xs font-semibold text-slate-500">{row.dipoName}</td>
                                             <td className="font-bold text-slate-700">{row.lorryNo}</td>
@@ -319,9 +341,17 @@ const downloadPDF = () => {
                                             <td className="font-black text-primary bg-orange-50/50">
                                                 {row.driverTotalReceive?.toLocaleString()} ৳
                                             </td>
+                                            <td className="no-print">
+                                                <button 
+                                                    onClick={() => handleDeleteRow(row)} 
+                                                    className="btn btn-ghost btn-xs text-red-500 hover:bg-red-50 font-bold"
+                                                >
+                                                    ✕ ডিলিট
+                                                </button>
+                                            </td>
                                         </tr>
                                     )) : (
-                                        <tr><td colSpan="10" className="text-center py-10 opacity-50 font-medium">কোন ডাটা পাওয়া যায়নি</td></tr>
+                                        <tr><td colSpan="11" className="text-center py-10 opacity-50 font-medium">কোন ডাটা পাওয়া যায়নি</td></tr>
                                     )}
                                 </tbody>
                             </table>
