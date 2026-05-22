@@ -1,6 +1,8 @@
 import React from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { useNavigate } from 'react-router'; 
+// ইউনিক আইডি জেনারেট করার জন্য মঙ্গোডিবি স্টাইলের আইডি অথবা র্যান্ডম আইডি মেকার ব্যবহার করতে পারেন
+const generateUniqueId = () => Math.random().toString(16).slice(2, 14);
 
 const PerTripCostImam = () => {
     const navigate = useNavigate(); 
@@ -10,7 +12,9 @@ const PerTripCostImam = () => {
             date: new Date().toISOString().split('T')[0],
             dipoName: "Meghna Parbatipur",
             tripNo: "",
-            rows: Array.from({ length: 12 }).map(() => ({
+            // প্রতিটি রোর সাথে একটি অনন্য ফ্রন্টএন্ড আইডি (rowId) যোগ করা হলো
+            rows: Array.from({ length: 15 }).map(() => ({
+                rowId: generateUniqueId(), 
                 lorryNo: "", 
                 driverName: "", 
                 product: "MS",
@@ -28,10 +32,11 @@ const PerTripCostImam = () => {
     });
 
     const { fields } = useFieldArray({ control, name: "rows" });
-    const watchRows = watch("rows");
+    const watchRows = watch("rows") || [];
 
-    // একটি রো-এর ডাটা প্রসেস করার কমন লজিক
-    const getRowCalculations = (row) => {
+    const calculateRowData = (index) => {
+        const row = watchRows[index];
+        
         const total = Number(row?.totalAmount) || 0;
         const toll = Number(row?.toll) || 0;
         const p1 = Number(row?.payment1) || 0;
@@ -53,7 +58,7 @@ const PerTripCostImam = () => {
     };
 
     const onSubmit = async (data) => {
-        // ১. ডাটা আছে এমন রো গুলো ফিল্টার করা
+        // ১. খালি রো বাদ দিয়ে শুধুমাত্র ডাটা আছে এমন রো ফিল্টার করা
         const filledRows = data.rows.filter(row => row.lorryNo.trim() !== "" || row.driverName.trim() !== "");
 
         if (filledRows.length === 0) {
@@ -61,28 +66,37 @@ const PerTripCostImam = () => {
             return;
         }
 
-        // ২. ডুপ্লিকেট চেক (Lorry No এবং Driver Name এর জন্য)
-        const lorryNos = filledRows.map(r => r.lorryNo.trim().toLowerCase());
+        // ২. ডুপ্লিকেট চেকিং লজিক 
+        const lorryNos = filledRows.map(r => r.lorryNo.trim().toUpperCase());
         const driverNames = filledRows.map(r => r.driverName.trim().toLowerCase());
 
-        const hasDuplicateLorry = lorryNos.some((val, i) => lorryNos.indexOf(val) !== i);
-        const hasDuplicateDriver = driverNames.some((val, i) => driverNames.indexOf(val) !== i);
+        const duplicateLorry = lorryNos.some((val, i) => lorryNos.indexOf(val) !== i);
+        const duplicateDriver = driverNames.some((val, i) => driverNames.indexOf(val) !== i);
 
-        if (hasDuplicateLorry) {
-            alert("❌ ভুল: একই লরি নম্বর (Lorry No) একাধিক রো-তে ব্যবহার করা হয়েছে!");
-            return;
-        }
-        if (hasDuplicateDriver) {
-            alert("❌ ভুল: একই ড্রাইভারের নাম একাধিক রো-তে ব্যবহার করা হয়েছে!");
+        if (duplicateLorry) {
+            alert("❌ ভুল: একই লরি নম্বর (Lorry No) দুইবার ব্যবহার করা হয়েছে!");
             return;
         }
 
-        // ৩. ক্যালকুলেটেড ভ্যালুসহ ডাটা প্রস্তুত করা
-        const processedRows = filledRows.map(row => {
-            const calcs = getRowCalculations(row);
+        if (duplicateDriver) {
+            alert("❌ ভুল: একই ড্রাইভারের নাম দুইবার ব্যবহার করা হয়েছে!");
+            return;
+        }
+
+        // ৩. ফাইনাল ডাটা প্রসেসিং (সঠিক ইনডেক্স খুঁজে আইডি সহ ডাটা ম্যাপ করা)
+        const processedRows = filledRows.map((row) => {
+            // আসল arrays-তে এই রোটির ইনডেক্স খুঁজে বের করা, যাতে ক্যালকুলেশন নির্ভুল থাকে
+            const actualIndex = data.rows.findIndex(r => r.rowId === row.rowId);
+            const calcs = calculateRowData(actualIndex >= 0 ? actualIndex : 0);
+            
             return {
                 ...row,
-                ...calcs
+                exactSalary: calcs.exactSalary,
+                payment2: calcs.payment2,
+                dieselBaki: calcs.dieselBaki,
+                dieselBabodPabe: calcs.dieselBabodPabe,
+                dieselAndMainSalary: calcs.dieselAndMainSalary,
+                driverTotalReceive: calcs.driverTotalReceive
             };
         });
 
@@ -92,6 +106,7 @@ const PerTripCostImam = () => {
             createdAt: new Date() 
         };
 
+        // ৪. সার্ভারে ডাটা পাঠানো
         try {
             const response = await fetch('https://api.ashrafulenterprise.com/save-trips-imam', {
                 method: 'POST',
@@ -103,7 +118,7 @@ const PerTripCostImam = () => {
                 alert(`✅ সফলভাবে ${processedRows.length} টি ডাটা সেভ হয়েছে!`);
                 reset(); 
             } else {
-                alert("❌ ডাটা সেভ করা সম্ভব হয়নি!");
+                alert("❌ ডাটা সেভ করতে সমস্যা হয়েছে!");
             }
         } catch (error) {
             alert("❌ সার্ভার কানেক্ট করা যাচ্ছে না!");
@@ -114,7 +129,7 @@ const PerTripCostImam = () => {
         <div className="p-2 md:p-4 bg-base-200 min-h-screen">
             <form onSubmit={handleSubmit(onSubmit)} className="max-w-[100%] mx-auto bg-white p-4 rounded-xl shadow-xl border border-slate-100">
                 <h1 className='text-center font-bold text-2xl underline mb-6 text-primary uppercase tracking-wider'>
-                    Trip Costing & Diesel Ledger (Imam)
+                    Trip Costing & Diesel Ledger
                 </h1>
                 
                 {/* Top Inputs */}
@@ -159,27 +174,31 @@ const PerTripCostImam = () => {
                         </thead>
                         <tbody>
                             {fields.map((field, index) => {
-                                const calcs = getRowCalculations(watchRows[index]);
+                                const { exactSalary, payment2, dieselBaki, dieselBabodPabe, dieselAndMainSalary, driverTotalReceive } = calculateRowData(index);
                                 return (
                                     <tr key={field.id} className="hover border-b">
-                                        <td className="text-slate-400">{index + 1}</td>
+                                        <td className="text-slate-400">
+                                            {index + 1}
+                                            {/* হিডেন ইনপুট হিসেবে rowId পাস করা হচ্ছে যাতে ফর্মে সাবমিটের সময় পাওয়া যায় */}
+                                            <input type="hidden" {...register(`rows.${index}.rowId`)} />
+                                        </td>
                                         <td><input type="text" {...register(`rows.${index}.lorryNo`)} className="input input-bordered input-xs w-20 font-bold text-red-600" /></td>
                                         <td><input type="text" {...register(`rows.${index}.driverName`)} className="input input-bordered input-xs w-20" /></td>
                                         <td><input type="number" {...register(`rows.${index}.totalAmount`)} className="input input-bordered input-xs w-16" /></td>
                                         <td className="bg-red-50"><input type="number" {...register(`rows.${index}.toll`)} className="input input-bordered input-xs w-12" /></td>
-                                        <td className="font-bold bg-green-50 text-green-700">{calcs.exactSalary}</td>
+                                        <td className="font-bold bg-green-50 text-green-700">{exactSalary}</td>
                                         <td><input type="number" {...register(`rows.${index}.payment1`)} className="input input-bordered input-xs w-14" /></td>
                                         <td><input type="number" {...register(`rows.${index}.fine`)} className="input input-bordered input-xs w-10 text-error" /></td>
                                         <td><input type="number" {...register(`rows.${index}.extraFine`)} className="input input-bordered input-xs w-10 text-error" /></td>
                                         <td><input type="number" {...register(`rows.${index}.security`)} className="input input-bordered input-xs w-14" /></td>
-                                        <td className="font-bold text-blue-700 bg-yellow-50">{calcs.payment2}</td>
+                                        <td className="font-bold text-blue-700 bg-yellow-50">{payment2}</td>
                                         <td className="bg-blue-50"><input type="number" {...register(`rows.${index}.dieselPabe`)} className="input input-bordered input-xs w-12" /></td>
                                         <td className="bg-blue-50"><input type="number" {...register(`rows.${index}.dieselKhoroch`)} className="input input-bordered input-xs w-12" /></td>
-                                        <td className="font-bold bg-green-50">{calcs.dieselBaki}</td>
+                                        <td className="font-bold bg-green-50">{dieselBaki}</td>
                                         <td className="bg-blue-50"><input type="number" {...register(`rows.${index}.dieselRate`)} className="input input-bordered input-xs w-12" /></td>
-                                        <td className="font-bold bg-green-50">{calcs.dieselBabodPabe}</td>
-                                        <td className="font-bold bg-purple-50 text-purple-700">{calcs.dieselAndMainSalary}</td>
-                                        <td className="font-bold text-md text-primary bg-orange-50">{calcs.driverTotalReceive}</td>
+                                        <td className="font-bold bg-green-50">{dieselBabodPabe}</td>
+                                        <td className="font-bold bg-purple-50 text-purple-700">{dieselAndMainSalary}</td>
+                                        <td className="font-bold text-md text-primary bg-orange-50">{driverTotalReceive}</td>
                                     </tr>
                                 );
                             })}
