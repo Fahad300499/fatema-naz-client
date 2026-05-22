@@ -1,42 +1,28 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router';
 
 const ChalanDiba = () => {
     const navigate = useNavigate();
-    const isFirstRender = useRef(true); // রিফ্রেশ ট্র্যাক করার জন্য
 
-    const [companyName, setCompanyName] = useState('M/S Fatema Naz Petrolium');
+    const [companyName, setCompanyName] = useState('M/S Diba Ratri Filling Station');
     const [chalanDate, setChalanDate] = useState(new Date().toISOString().split('T')[0]);
     const [allChalan, setAllChalan] = useState([]);
-    const [formData, setFormData] = useState({ sl: '', carNo: '', driver: '', product: '', depo: '', chalanNo: '' });
+    const [formData, setFormData] = useState({ carNo: '', driver: '', product: '', depo: '', chalanNo: '' });
     const [loading, setLoading] = useState(false);
 
-    // ১. রিফ্রেশ লজিক: পেজ লোড বা রিফ্রেশ হলে ডাটা খালি থাকবে
+    // তারিখ পরিবর্তন হলে অথবা প্রথমবার পেজ লোড হলে ডাটা ব্যাকএন্ড থেকে আসবে
     useEffect(() => {
-        // পেজ মাউন্ট হওয়ার সময় ডাটা ক্লিয়ার রাখা
-        setAllChalan([]);
-        
-        // যদি চান রিফ্রেশ করলে ইনপুটগুলোও ডিফল্ট হয়ে যাবে
-        setFormData({ sl: '', carNo: '', driver: '', product: '', depo: '', chalanNo: '' });
-    }, []);
-
-    // ২. তারিখ পরিবর্তন করলে ডাটা লোড হবে (কিন্তু প্রথমবার/রিফ্রেশে নয়)
-    useEffect(() => {
-        if (isFirstRender.current) {
-            isFirstRender.current = false;
-            return; // প্রথমবার লোড (রিফ্রেশ) হলে নিচের কোড চলবে না
-        }
-
         const loadData = async () => {
             setLoading(true);
             try {
                 const response = await axios.get(`https://api.ashrafulenterprise.com/chalans-diba/${chalanDate}`);
+                // যদি ওই তারিখে ডাটা থাকে তবে সেট হবে, না থাকলে খালি অ্যারে হবে
                 setAllChalan(response.data.entries || []);
-                setCompanyName(response.data.companyName || 'M/S Fatema Naz Petrolium');
+                setCompanyName(response.data.companyName || 'M/S Diba Ratri Filling Station');
             } catch (error) {
                 console.error("ডাটা লোড করতে সমস্যা:", error);
-                setAllChalan([]); // এরর হলে লিস্ট খালি করে দিবে
+                setAllChalan([]); 
             } finally {
                 setLoading(false);
             }
@@ -47,47 +33,67 @@ const ChalanDiba = () => {
         }
     }, [chalanDate]);
 
+    // ডাটাবেজে সেভ করার ফাংশন (সর্বশেষ companyName সহ সেভ হবে)
     const saveToDB = async (updatedEntries) => {
         try {
             await axios.post('https://api.ashrafulenterprise.com/chalans-diba', {
                 date: chalanDate,
-                companyName,
+                companyName, // কারেন্ট কোম্পানি নেম স্টেট থেকে যাবে
                 entries: updatedEntries
             });
         } catch (error) {
             console.error("সেভ করতে সমস্যা:", error);
+            alert("ডাটাবেজে সেভ হতে সমস্যা হয়েছে!");
         }
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        // ১. একই গাড়ির নম্বর চেক করার লজিক
+        // ১. একই গাড়ির নম্বর চেক করার লজিক
         const isDuplicate = allChalan.some(
             (item) => item.carNo.trim().toLowerCase() === formData.carNo.trim().toLowerCase()
         );
 
         if (isDuplicate) {
-            alert(`দুঃখিত! ${formData.carNo} নম্বর গাড়িটি এই তারিখের জন্য অলরেডি এন্ট্রি করা হয়েছে।`);
-            return; // ফাংশন এখানেই থেমে যাবে, ডাটা সেভ হবে না
+            alert(`দুঃখিত! ${formData.carNo} নম্বর গাড়িটি এই তারিখের জন্য অলরেডি এন্ট্রি করা হয়েছে।`);
+            return; 
         }
 
-        // ২. ডুপ্লিকেট না হলে ডাটা সেভ হবে
-        const updatedEntries = [...allChalan, formData];
+        // ইউনিক আইডি জেনারেশন লজিক (crypto.randomUUID অথবা ইউনিক টাইমস্ট্যাম্প আইডি হিসেবে কাজ করবে)
+        const uniqueId = typeof crypto.randomUUID === 'function' 
+            ? crypto.randomUUID() 
+            : `id_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+        // ২. SL No অটো জেনারেট এবং ইউনিক আইডি অবজেক্টে যুক্ত করা
+        const newEntry = {
+            ...formData,
+            _id: uniqueId, // ফ্রন্টএন্ড থেকে ডাটাবেজ ফ্রেন্ডলি আইডি সেট করা হলো
+            id: uniqueId,  // ব্যাকআপ আইডি
+            sl: allChalan.length + 1 // অটোমেটিক সিরিয়াল বসে যাবে
+        };
+
+        const updatedEntries = [...allChalan, newEntry];
         setAllChalan(updatedEntries);
         saveToDB(updatedEntries); 
         
         // ফর্ম রিসেট
-        setFormData({ 
-            sl: updatedEntries.length + 1, 
-            carNo: '', driver: '', product: '', depo: '', chalanNo: '' 
-        });
+        setFormData({ carNo: '', driver: '', product: '', depo: '', chalanNo: '' });
     };
 
     const handleDelete = (index) => {
-        const updated = allChalan.filter((_, i) => i !== index);
-        setAllChalan(updated);
-        saveToDB(updated);
+        if(window.confirm("আপনি কি নিশ্চিতভাবে এই চালানিটি ডিলিট করতে চান?")) {
+            const filteredChalan = allChalan.filter((_, i) => i !== index);
+            
+            // ডিলিট করার পর সিরিয়াল নম্বর (SL) পুনরায় সাজানো
+            const updated = filteredChalan.map((item, i) => ({
+                ...item,
+                sl: i + 1
+            }));
+
+            setAllChalan(updated);
+            saveToDB(updated);
+        }
     };
 
     return (
@@ -120,8 +126,7 @@ const ChalanDiba = () => {
                         </div>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="grid grid-cols-2 md:grid-cols-6 gap-2 bg-gray-50 p-4 rounded-lg border">
-                        <input type="text" placeholder="SL No" className="input input-sm input-bordered" value={formData.sl} onChange={(e) => setFormData({...formData, sl: e.target.value})} required />
+                    <form onSubmit={handleSubmit} className="grid grid-cols-2 md:grid-cols-5 gap-2 bg-gray-50 p-4 rounded-lg border">
                         <input type="text" placeholder="Lorry No" className="input input-sm input-bordered" value={formData.carNo} onChange={(e) => setFormData({...formData, carNo: e.target.value})} required />
                         <input type="text" placeholder="Driver" className="input input-sm input-bordered" value={formData.driver} onChange={(e) => setFormData({...formData, driver: e.target.value})} required />
                         <input type="text" placeholder="Product" className="input input-sm input-bordered" value={formData.product} onChange={(e) => setFormData({...formData, product: e.target.value})} required />
@@ -154,10 +159,11 @@ const ChalanDiba = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {allChalan.length > 0 ? (
+                            {allChalan.length > 0 && (
                                 allChalan.map((item, index) => (
-                                    <tr key={index} className="text-center border border-black">
-                                        <td className="border border-black">{item.sl}</td>
+                                    // ইউনিক আইডিকে রিয়্যাক্টের 'key' হিসেবে ব্যবহার করা হলো প্রোপার রেন্ডারিং এর জন্য
+                                    <tr key={item._id || item.id || index} className="text-center border border-black">
+                                        <td className="border border-black">{item.sl || index + 1}</td>
                                         <td className="border border-black font-bold">{item.carNo}</td>
                                         <td className="border border-black">{item.driver}</td>
                                         <td className="border border-black">{item.product}</td>
@@ -168,12 +174,6 @@ const ChalanDiba = () => {
                                         </td>
                                     </tr>
                                 ))
-                            ) : (
-                                !loading && isFirstRender.current === false && (
-                                    <tr>
-                                        
-                                    </tr>
-                                )
                             )}
                             
                             {/* ফিলার রো */}

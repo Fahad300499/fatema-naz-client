@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import axios from 'axios';
-import { Link, useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router'; // react-router-dom স্ট্যান্ডার্ড অনুযায়ী পরিবর্তিত
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -14,7 +14,6 @@ const ChalanReportImam = () => {
     const [searchDepot, setSearchDepot] = useState(""); 
     
     const [allData, setAllData] = useState([]); 
-    const [filteredData, setFilteredData] = useState([]); 
     const [loading, setLoading] = useState(false);
     const [hasSearched, setHasSearched] = useState(false);
 
@@ -44,34 +43,60 @@ const ChalanReportImam = () => {
                         flatEntries.push({
                             ...entry,
                             displayDepot: entry.depo || entry.depotName || "N/A", 
-                            date: dayObj.date 
+                            date: dayObj.date || "N/A"
                         });
                     });
                 }
             });
 
             setAllData(flatEntries);
-            setFilteredData(flatEntries);
-
         } catch (error) {
             console.error("রিপোর্ট আনতে সমস্যা হয়েছে", error);
+            alert("সার্ভার থেকে রিপোর্ট ডাটা আনা সম্ভব হয়নি।");
         } finally {
             setLoading(false);
         }
     };
 
-    useEffect(() => {
-        const result = allData.filter(item => {
+    // useEffect এবং অতিরিক্ত স্টেট বাদ দিয়ে useMemo ব্যবহার (পারফরম্যান্স বুস্ট এবং ইনস্ট্যান্ট আপডেট)
+    const filteredData = useMemo(() => {
+        return allData.filter(item => {
             const matchesLorry = !searchLorry || (item.carNo || item.lorryNo)?.toLowerCase().includes(searchLorry.toLowerCase());
             const matchesDriver = !searchDriver || item.driver?.toLowerCase().includes(searchDriver.toLowerCase());
             const matchesDepot = !searchDepot || item.displayDepot?.toLowerCase().includes(searchDepot.toLowerCase());
             
             return matchesLorry && matchesDriver && matchesDepot;
         });
-        setFilteredData(result);
     }, [searchLorry, searchDriver, searchDepot, allData]);
 
-    const getAdvancedSummary = () => {
+    // ডিলিট হ্যান্ডলার ফাংশন
+    const handleDelete = async (item) => {
+        const itemId = item._id || item.id; 
+        
+        if (!itemId) {
+            alert("দুঃখিত, এই চালানের কোনো আইডি খুঁজে পাওয়া যায়নি!");
+            return;
+        }
+
+        const isConfirmed = window.confirm(`আপনি কি নিশ্চিত যে চালান নম্বর ${item.chalanNo || ''} টি ডিলিট করতে চান?`);
+        
+        if (isConfirmed) {
+            try {
+                const response = await axios.delete(`https://api.ashrafulenterprise.com/delete-chalan-imam/${itemId}`);
+                if (response.status === 200) {
+                    alert("চালানটি সফলভাবে মুছে ফেলা হয়েছে।");
+                    // অল-ডাটা স্টেট থেকে রিমুভ করলেই useMemo-র কারণে টেবিল ও সামারি একযোগে আপডেট হয়ে যাবে
+                    setAllData(prevData => prevData.filter(data => (data._id || data.id) !== itemId));
+                }
+            } catch (error) {
+                console.error("ডিলিট করতে সমস্যা হয়েছে:", error);
+                alert(error.response?.data?.error || "চালানটি ডিলিট করা যায়নি। আবার চেষ্টা করুন।");
+            }
+        }
+    };
+
+    // অ্যাডভান্সড সামারি লজিক (ক্র্যাশ প্রোটেকশনসহ)
+    const getAdvancedSummary = useMemo(() => {
         const summary = {
             "Parbatipur": { total: 0, products: {} },
             "Baghabari": { total: 0, products: {} },
@@ -93,13 +118,13 @@ const ChalanReportImam = () => {
             }
         });
         return summary;
-    };
+    }, [filteredData]);
 
     const downloadPDF = () => {
         const doc = new jsPDF();
-        const summaryData = getAdvancedSummary();
+        const summaryData = getAdvancedSummary;
         const totalTrips = filteredData.length;
-        const dynamicHeading = getDynamicHeading(); // ডাইনামিক টাইটেল কল করা হলো
+        const dynamicHeading = getDynamicHeading();
 
         doc.setFontSize(10);
         doc.setTextColor(40, 40, 40);
@@ -114,10 +139,10 @@ const ChalanReportImam = () => {
             index + 1, 
             item.date, 
             item.carNo || item.lorryNo, 
-            item.driver, 
+            item.driver || "N/A", 
             item.displayDepot, 
-            item.product, 
-            item.chalanNo
+            item.product || "N/A", 
+            item.chalanNo || "N/A"
         ]);
 
         autoTable(doc, {
@@ -138,7 +163,6 @@ const ChalanReportImam = () => {
         doc.text("TRIP SUMMARY REPORT", 14, finalY);
 
         const summaryRows = Object.entries(summaryData)
-            .filter(([key]) => key !== "GrandTotal") 
             .map(([depo, data]) => {
                 const prodText = Object.entries(data.products)
                     .map(([p, c]) => `${p}: ${c}`)
@@ -163,7 +187,6 @@ const ChalanReportImam = () => {
         });
 
         const timestamp = new Date().toLocaleDateString();
-        // ফাইল নেম ডাইনামিক করা হয়েছে
         doc.save(`${dynamicHeading.replace(/\s+/g, '_')}_${timestamp}.pdf`);
     };
 
@@ -175,7 +198,6 @@ const ChalanReportImam = () => {
                 <div className="flex justify-between items-center mb-8 no-print">
                     <div className="flex items-center gap-4">
                         <button onClick={() => navigate(-1)} className="btn btn-circle btn-outline btn-sm">❮</button>
-                        {/* এখানে ডাইনামিক হেডিং বসানো হয়েছে */}
                         <h1 className="text-2xl font-black text-slate-800 tracking-tight">
                             {getDynamicHeading()}
                         </h1>
@@ -212,7 +234,7 @@ const ChalanReportImam = () => {
                     </button>
                 </div>
 
-                {/* Content rendering... */}
+                {/* Content rendering */}
                 {!hasSearched ? (
                     <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-slate-200">
                         <div className="text-5xl mb-4">📊</div>
@@ -225,7 +247,7 @@ const ChalanReportImam = () => {
                         
                         {/* Summary Cards */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            {Object.entries(getAdvancedSummary()).map(([depo, data]) => (
+                            {Object.entries(getAdvancedSummary).map(([depo, data]) => (
                                 <div key={depo} className="bg-white p-6 rounded-2xl shadow-sm border-b-4 border-blue-500">
                                     <div className="flex justify-between items-start mb-4">
                                         <h2 className="text-lg font-bold text-slate-700 uppercase">{depo}</h2>
@@ -249,19 +271,27 @@ const ChalanReportImam = () => {
                                 <table className="table w-full text-center">
                                     <thead className="bg-slate-800 text-white">
                                         <tr>
-                                            <th>Sl.</th><th>তারিখ</th><th>লরী নম্বর</th><th>ড্রাইভার</th><th>ডিপো</th><th>প্রোডাক্ট</th><th>চালান</th>
+                                            <th>Sl.</th><th>তারিখ</th><th>লরী নম্বর</th><th>ড্রাইভার</th><th>ডিপো</th><th>প্রোডাক্ট</th><th>চালান</th><th className="no-print">অ্যাকশন</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {filteredData.map((item, index) => (
-                                            <tr key={index} className="hover:bg-blue-50 transition-colors">
+                                            <tr key={item._id || item.id || index} className="hover:bg-blue-50 transition-colors">
                                                 <td className="font-medium text-slate-400">{index + 1}</td>
                                                 <td>{item.date}</td>
                                                 <td className="font-bold text-slate-700">{item.carNo || item.lorryNo}</td>
-                                                <td>{item.driver}</td>
+                                                <td>{item.driver || "N/A"}</td>
                                                 <td><span className="badge badge-ghost">{item.displayDepot}</span></td>
-                                                <td className="font-semibold text-blue-600">{item.product}</td>
-                                                <td>{item.chalanNo}</td>
+                                                <td className="font-semibold text-blue-600">{item.product || "N/A"}</td>
+                                                <td>{item.chalanNo || "N/A"}</td>
+                                                <td className="no-print">
+                                                    <button 
+                                                        onClick={() => handleDelete(item)} 
+                                                        className="btn btn-xs btn-error text-white rounded-md px-3 py-1 font-semibold hover:scale-105 transition-transform"
+                                                    >
+                                                        🗑️ ডিলিট
+                                                    </button>
+                                                </td>
                                             </tr>
                                         ))}
                                     </tbody>
