@@ -1,6 +1,8 @@
 import React from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { useNavigate } from 'react-router'; 
+// ইউনিক আইডি জেনারেট করার জন্য মঙ্গোডিবি স্টাইলের আইডি অথবা র্যান্ডম আইডি মেকার ব্যবহার করতে পারেন
+const generateUniqueId = () => Math.random().toString(16).slice(2, 14);
 
 const PerTripCost = () => {
     const navigate = useNavigate(); 
@@ -10,7 +12,9 @@ const PerTripCost = () => {
             date: new Date().toISOString().split('T')[0],
             dipoName: "Meghna Parbatipur",
             tripNo: "",
-            rows: Array.from({ length: 12 }).map(() => ({
+            // প্রতিটি রোর সাথে একটি অনন্য ফ্রন্টএন্ড আইডি (rowId) যোগ করা হলো
+            rows: Array.from({ length: 15 }).map(() => ({
+                rowId: generateUniqueId(), 
                 lorryNo: "", 
                 driverName: "", 
                 product: "MS",
@@ -28,7 +32,7 @@ const PerTripCost = () => {
     });
 
     const { fields } = useFieldArray({ control, name: "rows" });
-    const watchRows = watch("rows");
+    const watchRows = watch("rows") || [];
 
     const calculateRowData = (index) => {
         const row = watchRows[index];
@@ -62,7 +66,7 @@ const PerTripCost = () => {
             return;
         }
 
-        // ২. ডুপ্লিকেট চেকিং লজিক (একই ফর্মে দুইবার এন্ট্রি রোধ করতে)
+        // ২. ডুপ্লিকেট চেকিং লজিক 
         const lorryNos = filledRows.map(r => r.lorryNo.trim().toUpperCase());
         const driverNames = filledRows.map(r => r.driverName.trim().toLowerCase());
 
@@ -70,18 +74,21 @@ const PerTripCost = () => {
         const duplicateDriver = driverNames.some((val, i) => driverNames.indexOf(val) !== i);
 
         if (duplicateLorry) {
-            alert("❌ ভুল: একই লরি নম্বর (Lorry No) দুইবার ব্যবহার করা হয়েছে!");
+            alert("❌ ভুল: একই লরি নম্বর (Lorry No) দুইবার ব্যবহার করা হয়েছে!");
             return;
         }
 
         if (duplicateDriver) {
-            alert("❌ ভুল: একই ড্রাইভারের নাম দুইবার ব্যবহার করা হয়েছে!");
+            alert("❌ ভুল: একই ড্রাইভারের নাম দুইবার ব্যবহার করা হয়েছে!");
             return;
         }
 
-        // ৩. ফাইনাল ডাটা প্রসেসিং
-        const processedRows = filledRows.map((row, index) => {
-            const calcs = calculateRowData(index);
+        // ৩. ফাইনাল ডাটা প্রসেসিং (সঠিক ইনডেক্স খুঁজে আইডি সহ ডাটা ম্যাপ করা)
+        const processedRows = filledRows.map((row) => {
+            // আসল arrays-তে এই রোটির ইনডেক্স খুঁজে বের করা, যাতে ক্যালকুলেশন নির্ভুল থাকে
+            const actualIndex = data.rows.findIndex(r => r.rowId === row.rowId);
+            const calcs = calculateRowData(actualIndex >= 0 ? actualIndex : 0);
+            
             return {
                 ...row,
                 exactSalary: calcs.exactSalary,
@@ -111,7 +118,7 @@ const PerTripCost = () => {
                 alert(`✅ সফলভাবে ${processedRows.length} টি ডাটা সেভ হয়েছে!`);
                 reset(); 
             } else {
-                alert("❌ ডাটা সেভ করতে সমস্যা হয়েছে!");
+                alert("❌ ডাটা সেভ করতে সমস্যা হয়েছে!");
             }
         } catch (error) {
             alert("❌ সার্ভার কানেক্ট করা যাচ্ছে না!");
@@ -170,7 +177,11 @@ const PerTripCost = () => {
                                 const { exactSalary, payment2, dieselBaki, dieselBabodPabe, dieselAndMainSalary, driverTotalReceive } = calculateRowData(index);
                                 return (
                                     <tr key={field.id} className="hover border-b">
-                                        <td className="text-slate-400">{index + 1}</td>
+                                        <td className="text-slate-400">
+                                            {index + 1}
+                                            {/* হিডেন ইনপুট হিসেবে rowId পাস করা হচ্ছে যাতে ফর্মে সাবমিটের সময় পাওয়া যায় */}
+                                            <input type="hidden" {...register(`rows.${index}.rowId`)} />
+                                        </td>
                                         <td><input type="text" {...register(`rows.${index}.lorryNo`)} className="input input-bordered input-xs w-20 font-bold text-red-600" /></td>
                                         <td><input type="text" {...register(`rows.${index}.driverName`)} className="input input-bordered input-xs w-20" /></td>
                                         <td><input type="number" {...register(`rows.${index}.totalAmount`)} className="input input-bordered input-xs w-16" /></td>
