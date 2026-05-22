@@ -8,12 +8,23 @@ const LoryWorkHistory = () => {
     const [filteredHistory, setFilteredHistory] = useState([]); 
     const [loading, setLoading] = useState(true);
 
-    // --- আলাদা আলাদা সার্চ স্টেট ---
     const [searchLorry, setSearchLorry] = useState('');
     const [searchDriver, setSearchDriver] = useState('');
     const [searchWork, setSearchWork] = useState('');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
+
+    // ছবির লিস্ট অনুযায়ী অপশনগুলো
+    const workTypes = [
+        "ইঞ্জিন ফাংশন টোটাল",
+        "চাকার ফাংশন",
+        "কেবিনের কাজ",
+        "ট্যাংকির কাজ",
+        "ওয়ারিং এর কাজ",
+        "পাম্প এর কাজ",
+        "মবিল সার্ভিসিং",
+        "এয়ার ফিল্টার"
+    ];
 
     const fetchAllHistory = async () => {
         setLoading(true);
@@ -58,7 +69,6 @@ const LoryWorkHistory = () => {
         fetchAllHistory();
     }, []);
 
-    // --- মাল্টিপল সার্চ ফিল্টারিং লজিক ---
     useEffect(() => {
         const results = allHistory.filter(item => {
             const itemDate = new Date(item.date);
@@ -67,9 +77,10 @@ const LoryWorkHistory = () => {
 
             const matchesLorry = item.lorryNo.toLowerCase().includes(searchLorry.toLowerCase());
             const matchesDriver = (item.driverName || '').toLowerCase().includes(searchDriver.toLowerCase());
-            const matchesWork = (item.workDetails || '').toLowerCase().includes(searchWork.toLowerCase());
             
-            // তারিখের রেঞ্জ চেক
+            // কাজের ধরন সার্চ লজিক (Dropdown এর জন্য)
+            const matchesWork = searchWork === '' || (item.workDetails || '') === searchWork;
+            
             let matchesDate = true;
             if (sDate && eDate) {
                 matchesDate = itemDate >= sDate && itemDate <= eDate;
@@ -120,7 +131,7 @@ const LoryWorkHistory = () => {
                             <p className="text-slate-400 mt-2 font-medium uppercase tracking-widest text-xs">Fatema Naz Petroleum Fleet Records</p>
                         </div>
                         <div className="bg-white/10 backdrop-blur-md border border-white/20 p-5 rounded-3xl text-center min-w-[200px]">
-                            <p className="text-blue-200 text-xs font-bold uppercase tracking-widest mb-1">ফিল্টার অনুযায়ী মোট খরচ</p>
+                            <p className="text-blue-200 text-xs font-bold uppercase tracking-widest mb-1">ফিল্টার অনুযায়ী মোট খরচ</p>
                             <p className="text-3xl font-black text-white">{totalCost.toLocaleString()} ৳</p>
                         </div>
                     </div>
@@ -130,7 +141,6 @@ const LoryWorkHistory = () => {
                 <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-200 mb-8">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
                         
-                        {/* তারিখ থেকে */}
                         <div className="form-control">
                             <label className="text-[10px] font-black text-slate-400 uppercase mb-2 ml-1">শুরু তারিখ</label>
                             <input 
@@ -141,7 +151,6 @@ const LoryWorkHistory = () => {
                             />
                         </div>
 
-                        {/* তারিখ পর্যন্ত */}
                         <div className="form-control">
                             <label className="text-[10px] font-black text-slate-400 uppercase mb-2 ml-1">শেষ তারিখ</label>
                             <input 
@@ -152,7 +161,6 @@ const LoryWorkHistory = () => {
                             />
                         </div>
 
-                        {/* লরী নম্বর */}
                         <div className="form-control">
                             <label className="text-[10px] font-black text-slate-400 uppercase mb-2 ml-1">লরী নম্বর</label>
                             <input 
@@ -164,7 +172,6 @@ const LoryWorkHistory = () => {
                             />
                         </div>
 
-                        {/* ড্রাইভার নাম */}
                         <div className="form-control">
                             <label className="text-[10px] font-black text-slate-400 uppercase mb-2 ml-1">ড্রাইভার</label>
                             <input 
@@ -176,22 +183,25 @@ const LoryWorkHistory = () => {
                             />
                         </div>
 
-                        {/* কাজের ধরন */}
+                        {/* পরিবর্তিত কাজের ধরন (Select Dropdown) */}
                         <div className="form-control">
                             <label className="text-[10px] font-black text-slate-400 uppercase mb-2 ml-1">কাজের ধরন</label>
-                            <input 
-                                type="text" 
-                                placeholder="যেমন: ইঞ্জিন তেল..."
-                                className="input input-bordered w-full bg-slate-50 border-slate-200 rounded-xl font-medium text-sm focus:ring-2 focus:ring-blue-500"
+                            <select 
+                                className="select select-bordered w-full bg-slate-50 border-slate-200 rounded-xl font-medium text-sm focus:ring-2 focus:ring-blue-500"
                                 value={searchWork}
                                 onChange={(e) => setSearchWork(e.target.value)}
-                            />
+                            >
+                                <option value="">সবগুলো কাজ</option>
+                                {workTypes.map((type, idx) => (
+                                    <option key={idx} value={type}>{type}</option>
+                                ))}
+                            </select>
                         </div>
 
                     </div>
                 </div>
 
-                {/* --- Table Section (আগের মতই) --- */}
+                {/* --- Table Section --- */}
                 <div className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
                     <div className="overflow-x-auto">
                         {loading ? (
