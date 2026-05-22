@@ -14,14 +14,15 @@ const ShortHistoryDiba = () => {
 
     // ডাইনামিক টাইটেল জেনারেট করার লজিক
     const getReportTitle = () => {
-        if (searchDepo && searchProduct) return `${searchDepo} - ${searchProduct} Short Report`;
-        if (searchDepo) return `${searchDepo} Short Report`;
-        if (searchProduct) return `${searchProduct} Short Report`;
-        return "Short Report";
+        if (searchDepo && searchProduct) return `${searchDepo} - ${searchProduct} Short Calculation`;
+        if (searchDepo) return `${searchDepo} Short Calculation`;
+        if (searchProduct) return `${searchProduct} Short Calculation`;
+        return "Short Calculation";
     };
 
+    // মাস সিলেক্ট করলে স্টার্ট এবং এন্ড ডেট সেট করার লজিক
     const handleMonthChange = (e) => {
-        const selectedMonth = e.target.value;
+        const selectedMonth = e.target.value; // Format: YYYY-MM
         if (!selectedMonth) {
             setStartDate("");
             setEndDate("");
@@ -29,18 +30,24 @@ const ShortHistoryDiba = () => {
         }
         const [year, month] = selectedMonth.split("-");
         const firstDay = `${year}-${month}-01`;
-        const lastDay = new Date(year, month, 0).getDate();
-        const lastDayFormatted = `${year}-${month}-${lastDay}`;
+        
+        const lastDay = new Date(parseInt(year), parseInt(month), 0).getDate();
+        const formattedLastDay = lastDay < 10 ? `0${lastDay}` : lastDay;
+        const lastDayFormatted = `${year}-${month}-${formattedLastDay}`;
+        
         setStartDate(firstDay);
         setEndDate(lastDayFormatted);
     };
 
+    // ব্যাকএন্ড থেকে ডাটা আনার ফাংশন
     const fetchShortData = async () => {
         try {
             setHasSearched(true);
             const params = new URLSearchParams();
+            
             if (startDate) params.append("startDate", startDate);
             if (endDate) params.append("endDate", endDate);
+
             const url = `https://api.ashrafulenterprise.com/short-calculations-diba?${params.toString()}`;
             const res = await fetch(url);
             if (!res.ok) throw new Error("Server response error");
@@ -53,17 +60,64 @@ const ShortHistoryDiba = () => {
         }
     };
 
+    // নির্দিষ্ট একটি রো ডিলিট করার হ্যান্ডলার
+    const handleDeleteRow = async (sheetId, rowId) => {
+        const confirmDelete = window.confirm("⚠️ আপনি কি নিশ্চিতভাবেই এই রেকর্ডটি ডিলিট করতে চান?");
+        if (!confirmDelete) return;
+
+        try {
+            const res = await fetch(`https://api.ashrafulenterprise.com/short-calculations-diba/${sheetId}/row/${rowId}`, {
+                method: 'DELETE',
+            });
+
+            if (res.ok) {
+                alert("✅ রেকর্ডটি সফলভাবে ডিলিট হয়েছে!");
+                setSheets(prevSheets => 
+                    prevSheets.map(sheet => {
+                        if (sheet._id === sheetId) {
+                            return {
+                                ...sheet,
+                                rows: sheet.rows.filter(row => (row.rowId || row.id) !== rowId)
+                            };
+                        }
+                        return sheet;
+                    }).filter(sheet => sheet.rows.length > 0)
+                );
+            } else {
+                alert("❌ ডিলিট করতে সমস্যা হয়েছে!");
+            }
+        } catch (error) {
+            console.error("Delete Error:", error);
+            alert("❌ সার্ভারের সাথে যোগাযোগ করা যাচ্ছে না!");
+        }
+    };
+
+    // sheets ডাটা ফ্ল্যাট করা
     const allRows = (sheets || []).flatMap(sheet => 
         (sheet.rows || []).map(row => ({
             ...row,
+            sheetId: sheet._id, 
             createdAt: sheet.createdAt
         }))
     );
 
+    // ক্লায়েন্ট সাইড ফিল্টারিং (নিরাপদ ডেট ম্যাচিংসহ)
     const filteredRows = allRows.filter(row => {
         const matchesDepo = !searchDepo || row.place?.toLowerCase().includes(searchDepo.toLowerCase());
         const matchesProduct = !searchProduct || row.product?.toLowerCase().includes(searchProduct.toLowerCase());
-        return matchesDepo && matchesProduct;
+        
+        // ডেটের প্রথম ১০টি ক্যারেক্টার (YYYY-MM-DD) কেটে নিয়ে তুলনা করা হচ্ছে, যাতে ISO স্ট্র্রিং হলেও সমস্যা না হয়
+        const rowDate = row.deliverDate ? row.deliverDate.substring(0, 10) : "";
+        
+        let matchesDate = true;
+        if (startDate && rowDate) {
+            matchesDate = matchesDate && (rowDate >= startDate);
+        }
+        if (endDate && rowDate) {
+            matchesDate = matchesDate && (rowDate <= endDate);
+        }
+
+        return matchesDepo && matchesProduct && matchesDate;
     });
 
     // ক্যালকুলেশনস
@@ -86,7 +140,6 @@ const ShortHistoryDiba = () => {
     const downloadPDF = () => {
         const doc = new jsPDF('l', 'pt', 'a4');
         doc.setFontSize(16);
-        // PDF টাইটেলেও ডাইনামিক নাম ব্যবহার করা হয়েছে
         doc.text(getReportTitle(), 40, 40);
         doc.setFontSize(10);
         doc.text("Diba Ratri Filling Station", 40, 55);
@@ -97,6 +150,7 @@ const ShortHistoryDiba = () => {
             theme: 'grid',
             styles: { fontSize: 7, cellPadding: 2 },
             headStyles: { fillColor: [30, 41, 59] },
+            columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] 
         });
 
         let finalY = doc.lastAutoTable.finalY + 30;
@@ -134,7 +188,6 @@ const ShortHistoryDiba = () => {
                 <div className="flex justify-between items-center mb-8 no-print">
                     <div className="flex items-center gap-4">
                         <button onClick={() => navigate(-1)} className="btn btn-circle btn-outline btn-sm">❮</button>
-                        {/* এখানে ডাইনামিক টাইটেল রেন্ডার হচ্ছে */}
                         <div>
                             <h1 className="text-3xl font-extrabold text-slate-800 uppercase">
                                 {getReportTitle()}
@@ -198,30 +251,45 @@ const ShortHistoryDiba = () => {
                                             <th className="bg-orange-800/50">Difference</th>
                                             <th>Rate</th>
                                             <th className="bg-green-700">Amount</th>
+                                            <th className="no-print text-red-500">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {filteredRows.map((row, idx) => (
-                                            <tr key={idx} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
-                                                <td className="text-[10px]">{row.deliverDate}</td>
-                                                <td className="text-[10px] font-bold text-blue-700">{row.receivingDate || "N/A"}</td>
-                                                <td className="text-xs">{row.place}</td>
-                                                <td className="font-bold text-slate-700">{row.product}</td>
-                                                <td>{row.lorryNo}</td>
-                                                <td>{row.allowance}</td>
-                                                <td className="font-bold text-red-600">{row.totalAllowance}</td>
-                                                <td>{row.shortQty}</td>
-                                                <td className={`font-bold ${Number(row.difference) < 0 ? 'text-red-500' : 'text-blue-600'}`}>{row.difference}</td>
-                                                <td>{row.rate}</td>
-                                                <td className="font-black text-green-700">{Number(row.finalTotal || 0).toLocaleString()}</td>
+                                        {filteredRows.length === 0 ? (
+                                            <tr>
+                                                <td colSpan="12" className="py-8 text-slate-400 font-medium">কোনো ডাটা পাওয়া যায়নি।</td>
                                             </tr>
-                                        ))}
+                                        ) : (
+                                            filteredRows.map((row, idx) => (
+                                                <tr key={idx} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                                                    <td className="text-[10px]">{row.deliverDate ? row.deliverDate.substring(0, 10) : "N/A"}</td>
+                                                    <td className="text-[10px] font-bold text-blue-700">{row.receivingDate ? row.receivingDate.substring(0, 10) : "N/A"}</td>
+                                                    <td className="text-xs">{row.place}</td>
+                                                    <td className="font-bold text-slate-700">{row.product}</td>
+                                                    <td>{row.lorryNo}</td>
+                                                    <td>{row.allowance}</td>
+                                                    <td>{row.totalAllowance}</td>
+                                                    <td>{row.shortQty}</td>
+                                                    <td className={`font-bold ${Number(row.difference) < 0 ? 'text-red-500' : 'text-blue-600'}`}>{row.difference}</td>
+                                                    <td>{row.rate}</td>
+                                                    <td className="font-black text-green-700">{Number(row.finalTotal || 0).toLocaleString()}</td>
+                                                    <td className="no-print">
+                                                        <button 
+                                                            onClick={() => handleDeleteRow(row.sheetId, (row.rowId || row.id))} 
+                                                            className="btn btn-error btn-xs btn-outline rounded-md font-bold"
+                                                        >
+                                                            Delete
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        )}
                                     </tbody>
                                 </table>
                             </div>
                         </div>
 
-                        {/* সামারি এবং ডাউনলোড বাটন */}
+                        {/* সামারি এবং ডাউনলোড সেকশন */}
                         <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
                             <div className="bg-slate-900 text-white p-6 rounded-[2.5rem] shadow-2xl">
                                 <h3 className="text-xl font-bold mb-6 border-b border-slate-700 pb-3 flex justify-between uppercase">
@@ -249,7 +317,7 @@ const ShortHistoryDiba = () => {
                                             </div>
                                         </div>
                                     ))}
-    
+        
                                     <div className="pt-4 border-t border-slate-700 grid grid-cols-2 gap-4">
                                         <div className="bg-slate-800 p-4 rounded-2xl border border-blue-500/30">
                                             <p className="text-slate-400 text-[10px] uppercase">Total Lorry</p>
